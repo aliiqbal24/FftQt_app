@@ -1,17 +1,4 @@
 // mainwindow.cpp
-// Built‑in C++ Libs
-#include <cmath>
-#include <vector>
-#include <algorithm>
-
-// Qt Includes
-#include <QPen>
-#include <QInputDialog>
-#include <QTimer>
-#include <QThread>
-#include <QDebug>
-#include <QPushButton>
-// mainwindow.cpp
 // Built-in C++ Libs
 #include <cmath>
 #include <vector>
@@ -42,62 +29,47 @@
 #include "ui_mainwindow.h"
 #include "fft_mode.h"
 #include "plotmanager.h"
-#include "fft_config.h"
-
 
 // Adjustable Plotting Parameters
 double sampleRate  = 80e6;    // Sample rate of hardware (80 MSPS)
-double timeWindowSeconds = 100e-6;  // Time window (y axis in seconds (adjustable by user)
-int maxPointsToPlot = 10000;    // Maximum number of points to plot, avoids too much data from high time window
-int plotRefreshRateMs = 35;      // Plot refresh rate in milliseconds
+double timeWindowSeconds = 100e-6;  // Time window (adjustable by user)
+int maxPointsToPlot = 10000;    // Max points to plot
+int plotRefreshRateMs = 30;      // Plot refresh rate in milliseconds
 
-// Constructor
-// Initializes UI, plot styling, and starts background threads
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
     plotManager = new PlotManager(ui->FFT_plot, ui->Time_plot, this);
-    currentMode = FFTMode::FullBandwidth; // default mode
+    currentMode = FFTMode::FullBandwidth;
 
-    // Colors used in UI
     QColor lightGray(183, 182, 191);
     QColor backgroundColor(13, 13, 13);
     QColor white(255, 255, 255);
 
-    // Setup Pause/Play Button
     ui->PausePlay->setIcon(QIcon(":/play-pause-icon.png"));
     ui->PausePlay->setIconSize(QSize(48, 48));
     connect(ui->PausePlay, &QPushButton::clicked, this, &MainWindow::togglePause);
 
-    // Setup Save Button
     ui->Save->setIcon(QIcon(":/download-icon.png"));
     ui->Save->setIconSize(QSize(48, 48));
     connect(ui->Save, &QPushButton::clicked, this, &MainWindow::promptUserToSavePlot);
 
-    // Style and connect mode switcher (modes combo box)
-    ui->modes->setStyleSheet(
-        "QComboBox { color: white; background-color: rgb(95, 95, 95); border: 1px solid gray; }"
-        "QComboBox QAbstractItemView { background-color: rgb(95, 95, 95); color: white; }");
-    connect(ui->modes, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &MainWindow::onModeChanged);
+    ui->modes->setStyleSheet("QComboBox { color: white; background-color: rgb(95, 95, 95); border: 1px solid gray; } QComboBox QAbstractItemView { background-color: rgb(95, 95, 95); color: white; }");
+    connect(ui->modes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onModeChanged);
 
-    // Splitter Settings
     QList<int> initialSizes { height() / 2, height() / 2 };
     ui->splitter->setSizes(initialSizes);
     ui->splitter->setStretchFactor(0, 1);
     ui->splitter->setStretchFactor(1, 1);
     ui->splitter->setChildrenCollapsible(true);
 
-    // Size Policy
     ui->FFT_plot->setMinimumHeight(0);
     ui->Time_plot->setMinimumHeight(0);
     ui->FFT_plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     ui->Time_plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    // FFT Plot Styling
     QwtPlotGrid *fftGrid = new QwtPlotGrid();
     fftGrid->setMajorPen(QColor(183, 182, 191, 80), 0.48);
     fftGrid->enableX(true);
@@ -126,7 +98,6 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-    // Time‑domain plot styling
     QwtPlotGrid *timeGrid = new QwtPlotGrid();
     timeGrid->setMajorPen(QColor(183, 182, 191, 80), 0.5);
     timeGrid->enableX(true);
@@ -138,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
     QwtText timeTitle("Time Domain");
     timeTitle.setColor(white);
     ui->Time_plot->setTitle(timeTitle);
-    QwtText timeX("Time (µs)");
+    QwtText timeX("Time (\u00b5s)");
     timeX.setColor(lightGray);
     ui->Time_plot->setAxisTitle(QwtPlot::xBottom, timeX);
     QwtText timeY("Signal Value");
@@ -155,16 +126,13 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-    //
-    // set_time_buffer_size();
     this->centralWidget()->setStyleSheet("background-color: rgb(13, 13, 13);");
 
     QTimer *plotTimer = new QTimer(this);
     connect(plotTimer, &QTimer::timeout, this, &MainWindow::updatePlot);
     plotTimer->start(plotRefreshRateMs);
 
-    // Start background threads on GUI load
-    int requiredSize = std::min(static_cast<int>(sampleRate * timeWindowSeconds), MAX_BUFFER_LIMIT);
+    int requiredSize = computeRequiredSampleCount();
     set_time_buffer_size(requiredSize);
 
     QTimer::singleShot(0, this, []() {
@@ -176,7 +144,11 @@ MainWindow::MainWindow(QWidget *parent)
     });
 }
 
-MainWindow::~MainWindow() { delete ui; }
+MainWindow::~MainWindow() { delete ui; } // destructor
+
+int MainWindow::computeRequiredSampleCount() const {  // required function
+    return std::min(static_cast<int>(sampleRate * timeWindowSeconds + 1), MAX_BUFFER_LIMIT); // +1 fencepost
+}
 
 // mode change function from dropdown
 void MainWindow::onModeChanged(int index) {
@@ -197,7 +169,7 @@ void MainWindow::restartStreamsForMode() { // restart data streams after mode ch
     else
         sampleRate = 200000;  // 250 kHz for low bandwidth
 
-    int requiredSize = std::min(static_cast<int>(sampleRate * timeWindowSeconds), MAX_BUFFER_LIMIT);
+    int requiredSize = computeRequiredSampleCount();
     set_time_buffer_size(requiredSize);
 
     QThread* fftThread  = QThread::create([]() { start_fft_stream(); });
@@ -218,7 +190,7 @@ void MainWindow::updatePlot() {
     if (fftBuffer[10] > 0.0)
         plotManager->updateFFT(fftBuffer, sampleRate);
 
-    int targetSamples   = std::min(static_cast<int>(sampleRate * timeWindowSeconds), MAX_BUFFER_LIMIT);
+    int targetSamples   = computeRequiredSampleCount(); // Plus 1 (fence post adjustment, ensures enough points
     int availableSamples = get_time_sample_count();
     int plotSamples     = std::min(targetSamples, availableSamples);
 

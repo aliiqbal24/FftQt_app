@@ -58,7 +58,6 @@ void* fft_thread_func(void* /*arg*/)
             double im = fft_output[j][1];
             fft_magnitude_buffer[j] = sqrt(re * re + im * im);
         }
-
         fft_data_ready.store(1);
     }
 
@@ -71,7 +70,6 @@ int transfer_callback(uint16_t* data, int ndata, int dataloss, void* /*userdata*
         current_buffer = fft_buffers[0];  // Fallback to buffer 0
         buffer_index = 0;
     }
-
     if (dataloss)
         printf("[DEBUG] Data loss detected\n");
 
@@ -99,7 +97,6 @@ int transfer_callback(uint16_t* data, int ndata, int dataloss, void* /*userdata*
             }
             break;
         }
-
         current_buffer[buffer_index++] = static_cast<double>(data[i]);
 
         if (buffer_index >= FFT_SIZE) {
@@ -114,7 +111,6 @@ int transfer_callback(uint16_t* data, int ndata, int dataloss, void* /*userdata*
             buffer_index   = 0;
         }
     }
-
     return 1;
 }
 

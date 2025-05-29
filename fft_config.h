@@ -6,7 +6,7 @@
 //  constants shared across project
 #define TIME_BUFFER_SIZE_DEFAULT 2048
 #define MAX_BUFFER_LIMIT     10000000
-#define EPSILON            1e-12
+#define EPSILON   1e-12
 
 #define FFT_SIZE 4096
 #define FFT_BINS (FFT_SIZE / 2 + 1)

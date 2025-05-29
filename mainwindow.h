@@ -24,6 +24,8 @@ private Q_SLOTS:
     void saveFFTPlotToFile();
     void onModeChanged(int index);
     void restartStreamsForMode();
+    int computeRequiredSampleCount() const;
+
 
 private:
     void updatePlot();

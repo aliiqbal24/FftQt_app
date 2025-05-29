@@ -89,7 +89,8 @@ void PlotManager::updateTime(const std::vector<uint16_t> &timeBuffer,
 
     const int plotSamples   = static_cast<int>(timeBuffer.size());
     const int step          = std::max(1, plotSamples / maxPointsToPlot);
-    const double dt_us      = 1e6 / sampleRate;
+    //const double dt_us      = 1e6 / sampleRate;
+    const double dt_us = timeWindowSeconds * 1e6 / (plotSamples - 1); // -1 fence adjusdment
 
     QVector<double> timeX_us;
     QVector<double> powerY_uW;
