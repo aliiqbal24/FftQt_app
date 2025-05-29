@@ -21,7 +21,7 @@ static double fft_buffers[NUM_BUFFERS][FFT_SIZE];
 static int    write_index = 0;
 
 static double* fft_queue[NUM_BUFFERS];
-static int     queue_head = 0, queue_tail = 0;
+static std::atomic<int> queue_head{0}, queue_tail{0}; // atomic should help with thread safety
 
 static pthread_mutex_t queue_mutex      = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  queue_not_empty  = PTHREAD_COND_INITIALIZER;
@@ -30,6 +30,7 @@ static double* current_buffer = fft_buffers[0];
 static int     buffer_index   = 0;
 
 static FFTMode currentFFTMode = FFTMode::FullBandwidth;
+
 
 void set_fft_mode(int mode) {
     currentFFTMode = static_cast<FFTMode>(mode);

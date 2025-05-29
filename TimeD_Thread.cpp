@@ -12,14 +12,22 @@ static pthread_mutex_t time_mutex   = PTHREAD_MUTEX_INITIALIZER;
 static int total_samples_collected  = 0;
 
 // resize buffer
-void set_time_buffer_size(int size)
-{
+void set_time_buffer_size(int size) { // dynamic memory fixed, should help with crashing from thread reset
     pthread_mutex_lock(&time_mutex);
-    if (time_buffer) free(time_buffer);
+    uint16_t* new_buffer = (uint16_t*)malloc(sizeof(uint16_t) * size);
+    if (!new_buffer) {
+        pthread_mutex_unlock(&time_mutex);
+        return;
+    }
+
+    uint16_t* old_buffer = time_buffer;
+    time_buffer = new_buffer;
     dynamic_time_buffer_size = size;
-    time_buffer = (uint16_t*)malloc(sizeof(uint16_t) * dynamic_time_buffer_size);
     total_samples_collected = 0;
+
     pthread_mutex_unlock(&time_mutex);
+
+    if (old_buffer) free(old_buffer);  // Free after unlocking
 }
 
 // callback from RI -
@@ -28,13 +36,17 @@ int time_transfer_callback(uint16_t *data, int ndata, int dataloss, void *userda
     static int write_idx = 0;
     pthread_mutex_lock(&time_mutex);
 
+    if (!time_buffer) {  // Add null check
+        pthread_mutex_unlock(&time_mutex);
+        return 0;
+    }
+
     for (int i = 0; i < ndata; ++i) {
         time_buffer[write_idx] = data[i];
         write_idx = (write_idx + 1) % dynamic_time_buffer_size;
     }
     total_samples_collected = (total_samples_collected + ndata > dynamic_time_buffer_size)
-                                  ? dynamic_time_buffer_size
-                                  : total_samples_collected + ndata;
+    ? dynamic_time_buffer_size: total_samples_collected + ndata;
 
     pthread_mutex_unlock(&time_mutex);
     return 1;
@@ -44,6 +56,10 @@ int time_transfer_callback(uint16_t *data, int ndata, int dataloss, void *userda
 void get_time_domain_buffer(uint16_t *dst, int count)
 {
     pthread_mutex_lock(&time_mutex);
+    if (!time_buffer) {  // Add null check, should help with crash prevention
+        pthread_mutex_unlock(&time_mutex);
+        return;
+    }
     int n = (count > dynamic_time_buffer_size) ? dynamic_time_buffer_size : count;
     int end   = total_samples_collected;
     int start = (end - n + dynamic_time_buffer_size) % dynamic_time_buffer_size;
