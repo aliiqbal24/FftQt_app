@@ -109,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
     QwtText fftTitle("Frequency Domain");
     fftTitle.setColor(white);
     ui->FFT_plot->setTitle(fftTitle);
-    QwtText fftX("Frequency (MHz)");
+    QwtText fftX("Frequency");
     fftX.setColor(lightGray);
     ui->FFT_plot->setAxisTitle(QwtPlot::xBottom, fftX);
     QwtText fftY("Log Magnitude");
@@ -245,7 +245,7 @@ void MainWindow::promptUserToSavePlot() {
         saveFFTPlotToFile();
 }
 
-// ------------------ Time‑domain export (unchanged) -------------------
+// ------------------ Time‑domain export
 void MainWindow::saveTimePlotToFile() {
     QSettings settings("Ultracoustics", "RealtimePlotApp");
     QString lastDir = settings.value("lastSavePath", QDir::homePath()).toString();
@@ -279,7 +279,7 @@ void MainWindow::saveTimePlotToFile() {
     file.close();
 }
 
-// ------------------ FFT export (unchanged) ---------------------------
+// FFT export
 void MainWindow::saveFFTPlotToFile() {
     QSettings settings("Ultracoustics", "RealtimePlotApp");
     QString lastDir = settings.value("lastSavePath", QDir::homePath()).toString();
@@ -297,17 +297,25 @@ void MainWindow::saveFFTPlotToFile() {
         qWarning() << "Failed to open file for writing:" << fileName;
         return;
     }
-
     QTextStream out(&file);
-    out << "Frequency (MHz),Log Magnitude\n";
+    if (sampleRate > 1e6) {
+        out << "Frequency (MHz),Log Magnitude\n";
+    } else {
+        out << "Frequency (KHz),Log Magnitude\n";
+    }
 
     double fftBuffer[FFT_BINS] = {0};
     get_fft_magnitudes(fftBuffer, FFT_BINS);
 
     for (int i = 0; i < FFT_BINS; ++i) {
-        double freq_mhz = i * (sampleRate / FFT_SIZE) / 1e6;
-        double mag      = std::max(fftBuffer[i], EPSILON);
-        out << freq_mhz << "," << log10(mag) << "\n";
+        double freq = 0;
+        if (sampleRate > 1e6) {
+            freq = i * (sampleRate / FFT_SIZE) / 1e6;
+        } else {
+            freq = i * (sampleRate / FFT_SIZE) / 1e3;
+        }
+        double mag = std::max(fftBuffer[i], EPSILON);
+        out << freq << "," << log10(mag) << "\n";
     }
     file.close();
 }

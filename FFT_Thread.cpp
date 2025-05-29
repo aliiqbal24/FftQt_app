@@ -1,6 +1,5 @@
 #include "ri.h"
 #include "stdio.h"
-#include "string.h"
 #include "time.h"
 #include "math.h"
 #include "mkl.h"
@@ -48,7 +47,7 @@ void* fft_thread_func(void* /*arg*/)
         while (queue_head == queue_tail)
             pthread_cond_wait(&queue_not_empty, &queue_mutex);
         fft_input = fft_queue[queue_head];
-        queue_head = (queue_head + 1) % NUM_BUFFERS;
+        queue_head = (queue_head + 1) % NUM_BUFFERS; // ring buffer implementation
         pthread_mutex_unlock(&queue_mutex);
 
         fftw_execute_dft_r2c(plan, fft_input, fft_output);
@@ -71,7 +70,12 @@ int transfer_callback(uint16_t* data, int ndata, int dataloss, void* /*userdata*
     if (dataloss) printf("[DEBUG] Data loss detected\n");
 
     constexpr int ADC_SAMPLE_RATE = 80000000;
-    int targetRate = (currentFFTMode == FFTMode::LowBandwidth) ? 200000 : ADC_SAMPLE_RATE;
+    int targetRate;
+    if (currentFFTMode == FFTMode::LowBandwidth){
+        targetRate = 200000;}
+    else
+        targetRate =ADC_SAMPLE_RATE;
+
     int downsample_factor = ADC_SAMPLE_RATE / targetRate;
     static int skip_counter = 0;
 
@@ -93,7 +97,6 @@ int transfer_callback(uint16_t* data, int ndata, int dataloss, void* /*userdata*
             buffer_index   = 0;
         }
     }
-
     return 1;
 }
 

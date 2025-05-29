@@ -24,15 +24,15 @@ PlotManager::PlotManager(QwtPlot *fftPlot,
 {
     QColor neonPink(255, 112, 198);
 
-    // ---------- FFT curve
+    // FFT curve
     fftCurve_ = new QwtPlotCurve("FFT");
-    fftCurve_->setPen(QPen(neonPink, 0.5));
+    fftCurve_->setPen(QPen(neonPink, 0.6));
     fftCurve_->setRenderHint(QwtPlotItem::RenderAntialiased, true);
     fftCurve_->attach(fftPlot_);
 
-    // -- Time‑domain curve
+    //  Time‑domain curve
     timeCurve_ = new QwtPlotCurve("Time Domain");
-    timeCurve_->setPen(QPen(neonPink, 0.5));
+    timeCurve_->setPen(QPen(neonPink, 0.6));
     timeCurve_->attach(timePlot_);
 }
 
@@ -43,28 +43,38 @@ void PlotManager::updateFFT(const double *fftBuffer, double sampleRate)
 {
     if (isPaused_) return;
 
-    /* Bin‑width depends on the *current* effective Fs. */
+    // Bin‑width depends on the *current* effective Fs.
     const double binWidth_Hz = sampleRate / FFT_SIZE;
 
-    QVector<double> freqs_MHz;
+    QVector<double> freqs; //changed to general
     QVector<double> mags_Log;
 
-    /* No DC skip in low‑bandwidth mode any more – start at bin 0. */
+    // No DC skip in low‑bandwidth mode any more – start at bin 0.
     for (int i = 0; i < FFT_BINS; ++i)
     {
-        double freq_MHz = static_cast<double>(i) * binWidth_Hz / 1e6;
+        double freq = 0;
+        if (sampleRate > 1e6) { // Full bandwidth (MHz)
+            freq = static_cast<double>(i) * binWidth_Hz / 1e6;
+        } else { // Low bandwidth (KHz)
+            freq = static_cast<double>(i) * binWidth_Hz / 1e3;
+        }
         double magLin   = std::max(fftBuffer[i], EPSILON);
 
-        freqs_MHz.append(freq_MHz);
+        freqs.append(freq);
         mags_Log.append(std::log10(magLin));
     }
 
-    fftCurve_->setSamples(freqs_MHz, mags_Log);
+    fftCurve_->setSamples(freqs, mags_Log);
 
-    /* Keep x‑axis 0 → Nyquist (Fs/2).  Do this every call so the axis
-       snaps instantly after a mode change. */
-    fftPlot_->setAxisScale(QwtPlot::xBottom,
-    0.0,(sampleRate / 2.0) / 1e6);   // MHz
+    // Keep x‑axis 0 → Nyquist (Fs/2).  Do this every call so the axis
+    // snaps instantly after a mode change. adjustable MHz - KHz
+    if (sampleRate > 1e6) { // Full bandwidth
+        fftPlot_->setAxisTitle(QwtPlot::xBottom, QwtText("Frequency (MHz)"));
+        fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0, (sampleRate / 2.0) / 1e6);
+    } else { // Low bandwidth
+        fftPlot_->setAxisTitle(QwtPlot::xBottom, QwtText("Frequency (KHz)"));
+        fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0, (sampleRate / 2.0) / 1e3);
+    }
 
     fftPlot_->replot();
 }
@@ -74,8 +84,9 @@ void PlotManager::updateTime(const std::vector<uint16_t> &timeBuffer,
 {
     if (isPaused_) return;
 
-    /* Down‑sample purely for plotting so we never push >maxPointsToPlot
-       points into Qwt.  This has no impact on stored data. */
+    // Down‑sample purely for plotting so we never push >maxPointsToPlot
+    //  points into Qwt.  This has no impact on stored data.
+
     const int plotSamples   = static_cast<int>(timeBuffer.size());
     const int step          = std::max(1, plotSamples / maxPointsToPlot);
     const double dt_us      = 1e6 / sampleRate;

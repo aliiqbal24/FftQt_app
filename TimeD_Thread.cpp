@@ -5,13 +5,13 @@
 #include <stdio.h>
 #include "fft_config.h"
 
-/* ---- ring‑buffer for time‑domain data ---- */
+// ---- ring‑buffer for time‑domain data
 static int dynamic_time_buffer_size = 2048;
 static uint16_t *time_buffer        = NULL;
 static pthread_mutex_t time_mutex   = PTHREAD_MUTEX_INITIALIZER;
 static int total_samples_collected  = 0;
 
-/* resize buffer --------------------------------------------------------*/
+// resize buffer
 void set_time_buffer_size(int size)
 {
     pthread_mutex_lock(&time_mutex);
@@ -22,7 +22,7 @@ void set_time_buffer_size(int size)
     pthread_mutex_unlock(&time_mutex);
 }
 
-/* callback from RI -----------------------------------------------------*/
+// callback from RI -
 int time_transfer_callback(uint16_t *data, int ndata, int dataloss, void *userdata)
 {
     static int write_idx = 0;
@@ -40,7 +40,7 @@ int time_transfer_callback(uint16_t *data, int ndata, int dataloss, void *userda
     return 1;
 }
 
-/* data fetch API -------------------------------------------------------*/
+// data fetch
 void get_time_domain_buffer(uint16_t *dst, int count)
 {
     pthread_mutex_lock(&time_mutex);
@@ -60,7 +60,7 @@ int get_time_sample_count()
     return r;
 }
 
-/* launch ---------------------------------------------------------------*/
+// launch
 void start_time_stream()
 {
     if (!time_buffer) set_time_buffer_size(dynamic_time_buffer_size);
