@@ -14,22 +14,21 @@ static pthread_mutex_t time_mutex   = PTHREAD_MUTEX_INITIALIZER;
 static int total_samples_collected  = 0;
 
 // resize buffer
-void set_time_buffer_size(int size) { // dynamic memory fixed, should help with crashing from thread reset
+void set_time_buffer_size(int size) {
+
     pthread_mutex_lock(&time_mutex);
-    uint16_t* new_buffer = (uint16_t*)malloc(sizeof(uint16_t) * size);
+    uint16_t* new_buffer = (uint16_t*)calloc(size, sizeof(uint16_t));  // Zero-initialized
     if (!new_buffer) {
         pthread_mutex_unlock(&time_mutex);
+        fprintf(stderr, "ERROR: Failed to allocate time buffer\n");
         return;
     }
-
     uint16_t* old_buffer = time_buffer;
     time_buffer = new_buffer;
     dynamic_time_buffer_size = size;
     total_samples_collected = 0;
-
     pthread_mutex_unlock(&time_mutex);
-
-    if (old_buffer) free(old_buffer);  // Free after unlocking
+    free(old_buffer);  // Safe even if NULL
 }
 
 // callback from RI -

@@ -26,13 +26,13 @@ PlotManager::PlotManager(QwtPlot *fftPlot,
 
     // FFT curve
     fftCurve_ = new QwtPlotCurve("FFT");
-    fftCurve_->setPen(QPen(neonPink, 0.6));
+    fftCurve_->setPen(QPen(neonPink, 0.45));
     fftCurve_->setRenderHint(QwtPlotItem::RenderAntialiased, true);
     fftCurve_->attach(fftPlot_);
 
     //  Time‑domain curve
     timeCurve_ = new QwtPlotCurve("Time Domain");
-    timeCurve_->setPen(QPen(neonPink, 0.6));
+    timeCurve_->setPen(QPen(neonPink, 0.45));
     timeCurve_->attach(timePlot_);
 }
 

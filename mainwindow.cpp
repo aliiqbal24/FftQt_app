@@ -49,7 +49,7 @@
 double sampleRate  = 80e6;    // Sample rate of hardware (80 MSPS)
 double timeWindowSeconds = 100e-6;  // Time window (y axis in seconds (adjustable by user)
 int maxPointsToPlot = 10000;    // Maximum number of points to plot, avoids too much data from high time window
-int plotRefreshRateMs = 30;      // Plot refresh rate in milliseconds
+int plotRefreshRateMs = 35;      // Plot refresh rate in milliseconds
 
 // Constructor
 // Initializes UI, plot styling, and starts background threads

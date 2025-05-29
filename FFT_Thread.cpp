@@ -17,7 +17,7 @@
 static double fft_magnitude_buffer[FFT_BINS];
 static std::atomic<int> fft_data_ready{0};
 
-static double fft_buffers[NUM_BUFFERS][FFT_SIZE];
+static double fft_buffers[NUM_BUFFERS][FFT_SIZE] = {0};
 static int    write_index = 0;
 
 static double* fft_queue[NUM_BUFFERS];
@@ -67,22 +67,38 @@ void* fft_thread_func(void* /*arg*/)
 
 int transfer_callback(uint16_t* data, int ndata, int dataloss, void* /*userdata*/)
 {
-    if (!current_buffer) return 0;  // prevent crash on null buffer
-    if (dataloss) printf("[DEBUG] Data loss detected\n");
+    if (!current_buffer) { // prevent empty buffer crash
+        current_buffer = fft_buffers[0];  // Fallback to buffer 0
+        buffer_index = 0;
+    }
+
+    if (dataloss)
+        printf("[DEBUG] Data loss detected\n");
 
     constexpr int ADC_SAMPLE_RATE = 80000000;
     int targetRate;
-    if (currentFFTMode == FFTMode::LowBandwidth){
-        targetRate = 200000;}
+    if (currentFFTMode == FFTMode::LowBandwidth)
+        targetRate = 200000;
     else
-        targetRate =ADC_SAMPLE_RATE;
+        targetRate = ADC_SAMPLE_RATE;
 
     int downsample_factor = ADC_SAMPLE_RATE / targetRate;
     static int skip_counter = 0;
 
+    static int drop_warn_count = 0;
+
     for (int i = 0; i < ndata; ++i)
     {
         if (skip_counter++ % downsample_factor != 0) continue;
+
+        if (buffer_index >= FFT_SIZE) {
+            // Drop the rest of the samples in this chunk
+            if (drop_warn_count < 5) {
+                fprintf(stderr, "[WARN] FFT buffer overflow — samples dropped\n");
+                ++drop_warn_count;
+            }
+            break;
+        }
 
         current_buffer[buffer_index++] = static_cast<double>(data[i]);
 
@@ -98,8 +114,10 @@ int transfer_callback(uint16_t* data, int ndata, int dataloss, void* /*userdata*
             buffer_index   = 0;
         }
     }
+
     return 1;
 }
+
 
 void get_fft_magnitudes(double* dst, int count)
 {
