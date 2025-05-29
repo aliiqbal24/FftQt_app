@@ -46,10 +46,10 @@
 
 
 // Adjustable Plotting Parameters
-double sampleRate        = 80e6;    // Sample rate of hardware (80 MSPS)
+double sampleRate  = 80e6;    // Sample rate of hardware (80 MSPS)
 double timeWindowSeconds = 100e-6;  // Time window (y axis in seconds (adjustable by user)
-int    maxPointsToPlot   = 10000;    // Maximum number of points to plot, avoids too much data from high time window
-int    plotRefreshRateMs = 30;      // Plot refresh rate in milliseconds
+int maxPointsToPlot = 10000;    // Maximum number of points to plot, avoids too much data from high time window
+int plotRefreshRateMs = 30;      // Plot refresh rate in milliseconds
 
 // Constructor
 // Initializes UI, plot styling, and starts background threads
@@ -155,6 +155,8 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
+    //
+    // set_time_buffer_size();
     this->centralWidget()->setStyleSheet("background-color: rgb(13, 13, 13);");
 
     QTimer *plotTimer = new QTimer(this);
@@ -162,15 +164,14 @@ MainWindow::MainWindow(QWidget *parent)
     plotTimer->start(plotRefreshRateMs);
 
     // Start background threads on GUI load
+    int requiredSize = std::min(static_cast<int>(sampleRate * timeWindowSeconds), MAX_BUFFER_LIMIT);
+    set_time_buffer_size(requiredSize);
+
     QTimer::singleShot(0, this, []() {
         QThread* fftThread = QThread::create([]() { start_fft_stream(); });
         fftThread->start();
 
-        QThread* timeThread = QThread::create([]() {
-            int requiredSize = std::min(static_cast<int>(sampleRate * timeWindowSeconds), MAX_BUFFER_LIMIT);
-            set_time_buffer_size(requiredSize);
-            start_time_stream();
-        });
+        QThread* timeThread = QThread::create([]() { start_time_stream(); });
         timeThread->start();
     });
 }
@@ -245,7 +246,7 @@ void MainWindow::promptUserToSavePlot() {
         saveFFTPlotToFile();
 }
 
-// ------------------ Time‑domain export
+// Time‑domain export
 void MainWindow::saveTimePlotToFile() {
     QSettings settings("Ultracoustics", "RealtimePlotApp");
     QString lastDir = settings.value("lastSavePath", QDir::homePath()).toString();

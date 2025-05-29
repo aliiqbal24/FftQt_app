@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h> // for memset
+#include <algorithm> // for min
 #include "fft_config.h"
 
 // ---- ring‑buffer for time‑domain data
@@ -53,20 +55,24 @@ int time_transfer_callback(uint16_t *data, int ndata, int dataloss, void *userda
 }
 
 // data fetch
-void get_time_domain_buffer(uint16_t *dst, int count)
-{
+void get_time_domain_buffer(uint16_t *dst, int count) {
+    if (!dst || count <= 0) return;  // Early exit if invalid
+
     pthread_mutex_lock(&time_mutex);
-    if (!time_buffer) {  // Add null check, should help with crash prevention
+    if (!time_buffer) {
         pthread_mutex_unlock(&time_mutex);
+        memset(dst, 0, count * sizeof(uint16_t));  // Zero-fill on error
         return;
     }
-    int n = (count > dynamic_time_buffer_size) ? dynamic_time_buffer_size : count;
-    int end   = total_samples_collected;
+
+    int n = std::min(count, dynamic_time_buffer_size);
+    int end = total_samples_collected;
     int start = (end - n + dynamic_time_buffer_size) % dynamic_time_buffer_size;
     for (int i = 0; i < n; ++i)
         dst[i] = time_buffer[(start + i) % dynamic_time_buffer_size];
     pthread_mutex_unlock(&time_mutex);
 }
+
 
 int get_time_sample_count()
 {
