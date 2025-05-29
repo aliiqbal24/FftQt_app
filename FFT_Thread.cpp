@@ -29,7 +29,13 @@ static pthread_cond_t  queue_not_empty  = PTHREAD_COND_INITIALIZER;
 static double* current_buffer = fft_buffers[0];
 static int     buffer_index   = 0;
 
-static FFTMode currentFFTMode = FFTMode::FullBandwidth;
+static FFTMode currentFFTMode = FFTMode::FullBandwidth; // initial mode
+
+static PeakFrequencyCallback peak_callback = nullptr;
+
+void register_peak_callback(PeakFrequencyCallback cb) {
+    peak_callback = cb;
+}
 
 
 void set_fft_mode(int mode) {
@@ -53,11 +59,33 @@ void* fft_thread_func(void* /*arg*/)
 
         fftw_execute_dft_r2c(plan, fft_input, fft_output);
 
+        int peakIndex = 0;
+        double peakValue = 0.0;
+
         for (int j = 0; j < FFT_BINS; ++j) {
             double re = fft_output[j][0];
             double im = fft_output[j][1];
-            fft_magnitude_buffer[j] = sqrt(re * re + im * im);
+            double mag = sqrt(re * re + im * im);
+            fft_magnitude_buffer[j] = mag;
+
+            if (mag > peakValue){
+                peakValue = mag;
+                peakIndex = j;
+            }
+
         }
+
+        if (peak_callback) { // units
+            double freq = (peakIndex * (currentFFTMode == FFTMode::LowBandwidth ? 200000.0 : 80000000.0)) / FFT_SIZE;
+
+            if (currentFFTMode == FFTMode::LowBandwidth)
+                freq /= 1000.0;  // to kHz
+            else
+                freq /= 1e6;     // to MHz
+
+            peak_callback(freq);
+        }
+
         fft_data_ready.store(1);
     }
 

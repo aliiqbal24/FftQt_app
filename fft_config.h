@@ -15,6 +15,8 @@
 void start_fft_stream();
 void set_fft_mode(int mode);
 void get_fft_magnitudes(double *dst, int count);
+typedef void (*PeakFrequencyCallback)(double frequency); // new temp
+void register_peak_callback(PeakFrequencyCallback cb); // new temp
 
 //  Declarations from C/C++ TimeD_Thread.cpp
 #ifdef __cplusplus

@@ -56,8 +56,16 @@ MainWindow::MainWindow(QWidget *parent)
     ui->Save->setIconSize(QSize(48, 48));
     connect(ui->Save, &QPushButton::clicked, this, &MainWindow::promptUserToSavePlot);
 
+
+    // mode switcher UI
     ui->modes->setStyleSheet("QComboBox { color: white; background-color: rgb(95, 95, 95); border: 1px solid gray; } QComboBox QAbstractItemView { background-color: rgb(95, 95, 95); color: white; }");
     connect(ui->modes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onModeChanged);
+
+    // Peak frequency tracker UI
+    ui->PeakFreq->setText("Peak: --");
+    ui->PeakFreq->setStyleSheet("color: gray; font-size: 18px;");
+    ui->PeakFreq->setAlignment(Qt::AlignCenter);
+
 
     QList<int> initialSizes { height() / 2, height() / 2 };
     ui->splitter->setSizes(initialSizes);
@@ -135,6 +143,18 @@ MainWindow::MainWindow(QWidget *parent)
     int requiredSize = computeRequiredSampleCount();
     set_time_buffer_size(requiredSize);
 
+    register_peak_callback([](double freq) {
+        QMetaObject::invokeMethod(qApp, [freq]() {
+            auto windows = qApp->topLevelWidgets();
+            for (auto *w : windows) {
+                if (auto *mw = qobject_cast<MainWindow *>(w)) {
+                    mw->updatePeakFrequency(freq);
+                    break;
+                }
+            }
+        });
+    });
+
     QTimer::singleShot(0, this, []() {
         QThread* fftThread = QThread::create([]() { start_fft_stream(); });
         fftThread->start();
@@ -161,17 +181,27 @@ void MainWindow::onModeChanged(int index) {
     restartStreamsForMode();
 }
 
-void MainWindow::restartStreamsForMode() { // restart data streams after mode change
+void MainWindow::restartStreamsForMode() {
     set_fft_mode(static_cast<int>(currentMode));
 
-    if (currentMode == FFTMode::FullBandwidth)
-        sampleRate = 80e6;
-    else
-        sampleRate = 200000;  // 250 kHz for low bandwidth
-
+    sampleRate = (currentMode == FFTMode::FullBandwidth) ? 80e6 : 200000;
     int requiredSize = computeRequiredSampleCount();
     set_time_buffer_size(requiredSize);
 
+    // Register peak callback on main thread (safe)
+    register_peak_callback([](double freq) {
+        QMetaObject::invokeMethod(qApp, [freq]() {
+            auto windows = qApp->topLevelWidgets();
+            for (auto *w : windows) {
+                if (auto *mw = qobject_cast<MainWindow *>(w)) {
+                    mw->updatePeakFrequency(freq);
+                    break;
+                }
+            }
+        });
+    });
+
+    // Launch threads (non-blocking)
     QThread* fftThread  = QThread::create([]() { start_fft_stream(); });
     QThread* timeThread = QThread::create([]() { start_time_stream(); });
     fftThread->start();
@@ -292,3 +322,11 @@ void MainWindow::saveFFTPlotToFile() {
     }
     file.close();
 }
+
+void MainWindow::updatePeakFrequency(double frequency) {
+    QString unit = (currentMode == FFTMode::LowBandwidth) ? "kHz" : "MHz";
+    QString label = QString("Peak: %1 %2").arg(frequency, 0, 'f', 2).arg(unit);
+    ui->PeakFreq->setText(label);
+}
+
+

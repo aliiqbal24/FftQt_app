@@ -25,6 +25,9 @@ private Q_SLOTS:
     void onModeChanged(int index);
     void restartStreamsForMode();
     int computeRequiredSampleCount() const;
+    void updatePeakFrequency(double frequency);
+
+
 
 
 private:

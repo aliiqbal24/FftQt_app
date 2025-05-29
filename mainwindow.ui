@@ -18,11 +18,11 @@
     <item>
      <widget class="QSplitter" name="horizontalSplitter">
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
       <widget class="QSplitter" name="splitter">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <widget class="QwtPlot" name="FFT_plot" native="true"/>
        <widget class="QwtPlot" name="Time_plot" native="true"/>
@@ -43,10 +43,17 @@
           </item>
          </widget>
         </item>
+        <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter">
+         <widget class="QLabel" name="PeakFreq">
+          <property name="text">
+           <string>Peak Freq</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <spacer name="spacerTop">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -73,7 +80,7 @@
         <item>
          <spacer name="spacerBottom">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
