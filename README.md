@@ -22,7 +22,6 @@ A real-time signal visualization app built with **Qt 6**, **Qwt**, and powered b
 - Qt 6.9 (MinGW 64-bit)
 - Qwt 6.3.0 (built with Qt 6)
 - Intel MKL (2025 or later)
-- FFTW3
 - libri SDK (from Resolved Instruments)
 
 ### 🔧 Setup
