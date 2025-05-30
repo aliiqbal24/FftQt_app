@@ -56,7 +56,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->Save->setIconSize(QSize(48, 48));
     connect(ui->Save, &QPushButton::clicked, this, &MainWindow::promptUserToSavePlot);
 
-
     // mode switcher UI
     ui->modes->setStyleSheet("QComboBox { color: white; background-color: rgb(95, 95, 95); border: 1px solid gray; } QComboBox QAbstractItemView { background-color: rgb(95, 95, 95); color: white; }");
     connect(ui->modes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onModeChanged);
@@ -188,11 +187,11 @@ void MainWindow::restartStreamsForMode() {
     int requiredSize = computeRequiredSampleCount();
     set_time_buffer_size(requiredSize);
 
-    // Register peak callback on main thread (safe)
+    // Register peak frequency on main thread (safe)
     register_peak_callback([](double freq) {
         QMetaObject::invokeMethod(qApp, [freq]() {
             auto windows = qApp->topLevelWidgets();
-            for (auto *w : windows) {
+            for (auto *w : windows) {  // need to do in loop to find the right widget ( weird but qt requires)
                 if (auto *mw = qobject_cast<MainWindow *>(w)) {
                     mw->updatePeakFrequency(freq);
                     break;
@@ -201,13 +200,13 @@ void MainWindow::restartStreamsForMode() {
         });
     });
 
-    // Launch threads (non-blocking)
+    // Relaunch Launch threads (non-blocking)
     QThread* fftThread  = QThread::create([]() { start_fft_stream(); });
     QThread* timeThread = QThread::create([]() { start_time_stream(); });
     fftThread->start();
     timeThread->start();
 
-    qDebug() << "Streams restarted for mode:" << ((currentMode == FFTMode::FullBandwidth) ? "FullBandwidth" : "LowBandwidth");
+    qDebug() << "Streams restarted for mode:" << ((currentMode == FFTMode::FullBandwidth) ? "FullBandwidth" : "LowBandwidth"); // for testing
 }
 
 void MainWindow::updatePlot() {
@@ -254,8 +253,8 @@ void MainWindow::saveTimePlotToFile() {
     QString lastDir = settings.value("lastSavePath", QDir::homePath()).toString();
 
     QString fileName = QFileDialog::getSaveFileName(this, "Save Time-Domain Plot Data",
-                                                    lastDir,
-                                                    "Text File (*.txt);;CSV File (*.csv);;Raw Binary (*.raw)");
+    lastDir,"Text File (*.txt);;CSV File (*.csv);;Raw Binary (*.raw)");
+
     if (fileName.isEmpty()) return;
     if (fileName.endsWith(".raw")) return;  // ignore raw format for now
 

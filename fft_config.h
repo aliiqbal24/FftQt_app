@@ -8,7 +8,10 @@
 #define MAX_BUFFER_LIMIT     10000000
 #define EPSILON   1e-12
 
-#define FFT_SIZE 4096
+#define FFT_SIZE 4096	 // doesn't work for 8192 or any even above 4096 , but does for 8199, even 74025 (crashy for 100KHz)
+// aparently mkl uses bluestiens algo, which is optimized for multiples or powers of low odd primes
+// maybe ask kyle what would be a minimum resolution for "both modes"
+
 #define FFT_BINS (FFT_SIZE / 2 + 1)
 
 //  Declarations from C++ FFT_Thread.cpp

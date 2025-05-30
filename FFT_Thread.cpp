@@ -68,7 +68,7 @@ void* fft_thread_func(void* /*arg*/)
             double mag = sqrt(re * re + im * im);
             fft_magnitude_buffer[j] = mag;
 
-            if (mag > peakValue){
+            if (mag > peakValue){    // NOTE that this peak value is only per buffer not perwhole run, might have to rethink how we did this
                 peakValue = mag;
                 peakIndex = j;
             }
