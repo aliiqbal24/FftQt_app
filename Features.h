@@ -22,7 +22,7 @@ public:
 
     static void promptUserToSavePlot(QWidget *parent,const double *fftBuffer,const std::vector<uint16_t> &timeBuffer);
 
-    static void updatePeakFrequency(QLabel *label, FFTMode mode, double frequency);
+    static void updatePeakFrequency(QLabel *label, FFTMode mode, double frequency, bool isPaused);
 };
 
 #endif // FEATURES_H

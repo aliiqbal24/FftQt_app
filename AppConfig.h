@@ -8,7 +8,7 @@ struct AppConfig {
     static inline double sampleRate   = 80e6;
     static inline double timeWindowSeconds  = 100e-6;
     static inline int maxPointsToPlot   = 10000;
-    static inline int plotRefreshRateMs     = 30;
+    static inline int plotRefreshRateMs  = 25; // lower the better tbh, but theres better ways to improve responsiveness
 
     static inline int fftSize  = 16385;
     static inline int fftBins  = fftSize / 2 + 1;

@@ -1,4 +1,4 @@
-#include "FFTProcess.h"
+ #include "FFTProcess.h"
 #include "AppConfig.h"
 #include "ri.h"
 #include <pthread.h>
@@ -14,7 +14,6 @@
 #define NUM_BUFFERS 8
 #define NUM_FFT_THREADS 3
 
-// Type alias
 using PeakFrequencyCallback = void(*)(double);
 
 // Shared static state
@@ -54,10 +53,12 @@ static void* fft_thread_func(void*) {
 
         fftw_execute_dft_r2c(plan, fft_input, fft_output);
 
-        // TESTING IGNORING FIRST 10% of BINS
-
         int peakIndex = 0;
         double peakValue = 0.0;
+
+        const int ignoreBins = AppConfig::fftBins / 10;   // adjust accodingly (Ask Kyle
+        const int ignoreBinsTop = (AppConfig::fftBins * 0.9); // adjust accordingly (Ask kyle
+
 
         for (int j = 0; j < AppConfig::fftBins; ++j) {
             double re = fft_output[j][0];
@@ -65,7 +66,8 @@ static void* fft_thread_func(void*) {
             double mag = std::sqrt(re * re + im * im);
             fft_magnitude_buffer[j] = mag;
 
-            if (mag > peakValue) {
+            // Skip first 10% for peak detection
+            if (j >= ignoreBins && j <= ignoreBinsTop && mag > peakValue) {
                 peakValue = mag;
                 peakIndex = j;
             }
@@ -92,7 +94,6 @@ static int transfer_callback(uint16_t* data, int ndata, int, void*) {
     static int skip = 0;
     for (int i = 0; i < ndata; ++i) {
         if (skip++ % downsample != 0) continue;
-
         if (buffer_index >= AppConfig::fftSize) break;
 
         current_buffer[buffer_index++] = static_cast<double>(data[i]);

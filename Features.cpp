@@ -114,9 +114,10 @@ void Features::promptUserToSavePlot(QWidget *parent,
     }
 }
 
-void Features::updatePeakFrequency(QLabel *label, FFTMode mode, double frequency)
+void Features::updatePeakFrequency(QLabel *label, FFTMode mode, double frequency, bool isPaused)
 {
     if (!label) return;
+    if (isPaused) return;
 
     QString unit = (mode == FFTMode::LowBandwidth) ? "kHz" : "MHz";
     QString text = QString("Peak: %1 %2").arg(frequency, 0, 'f', 2).arg(unit);

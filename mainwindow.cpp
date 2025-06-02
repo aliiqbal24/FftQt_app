@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->PeakFreq->setText("Peak: --");
     ui->PeakFreq->setStyleSheet("color: gray; font-size: 18px;");
     ui->PeakFreq->setAlignment(Qt::AlignCenter);
+    ui->PeakFreq->setMinimumWidth(80);  // or any width that fits max expected text
+
 
     // ComboBox (mode selector) styling
     ui->modes->setStyleSheet(
@@ -87,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(fft, &FFTProcess::peakFrequencyUpdated, this, [=](double freq) {
-        Features::updatePeakFrequency(ui->PeakFreq, currentMode, freq);
+        Features::updatePeakFrequency(ui->PeakFreq, currentMode, freq, isPaused);
     });
 
     QTimer *plotTimer = new QTimer(this);
