@@ -1,4 +1,6 @@
- #include "FFTProcess.h"
+
+// FFTProcess.cpp
+#include "FFTProcess.h"
 #include "AppConfig.h"
 #include "ri.h"
 #include <pthread.h>
@@ -16,7 +18,6 @@
 
 using PeakFrequencyCallback = void(*)(double);
 
-// Shared static state
 static std::atomic<int> fft_data_ready{0};
 static std::vector<double> fft_magnitude_buffer(AppConfig::fftBins);
 static std::vector<std::vector<double>> fft_buffers(NUM_BUFFERS, std::vector<double>(AppConfig::fftSize));
@@ -56,9 +57,8 @@ static void* fft_thread_func(void*) {
         int peakIndex = 0;
         double peakValue = 0.0;
 
-        const int ignoreBins = AppConfig::fftBins / 10;   // adjust accodingly (Ask Kyle
-        const int ignoreBinsTop = (AppConfig::fftBins * 0.9); // adjust accordingly (Ask kyle
-
+        const int ignoreBins = AppConfig::fftBins / 10;
+        const int ignoreBinsTop = static_cast<int>(AppConfig::fftBins * 0.9);
 
         for (int j = 0; j < AppConfig::fftBins; ++j) {
             double re = fft_output[j][0];
@@ -66,7 +66,6 @@ static void* fft_thread_func(void*) {
             double mag = std::sqrt(re * re + im * im);
             fft_magnitude_buffer[j] = mag;
 
-            // Skip first 10% for peak detection
             if (j >= ignoreBins && j <= ignoreBinsTop && mag > peakValue) {
                 peakValue = mag;
                 peakIndex = j;
@@ -94,7 +93,6 @@ static int transfer_callback(uint16_t* data, int ndata, int, void*) {
     static int skip = 0;
     for (int i = 0; i < ndata; ++i) {
         if (skip++ % downsample != 0) continue;
-        if (buffer_index >= AppConfig::fftSize) break;
 
         current_buffer[buffer_index++] = static_cast<double>(data[i]);
 
@@ -105,14 +103,23 @@ static int transfer_callback(uint16_t* data, int ndata, int, void*) {
             pthread_cond_signal(&queue_not_empty);
             pthread_mutex_unlock(&queue_mutex);
 
+            // Shift overlap portion into the new buffer
             write_index = (write_index + 1) % NUM_BUFFERS;
             current_buffer = fft_buffers[write_index].data();
-            buffer_index = 0;
+
+            std::copy(
+                fft_buffers[(write_index - 1 + NUM_BUFFERS) % NUM_BUFFERS].data() + AppConfig::fftHopSize,
+                fft_buffers[(write_index - 1 + NUM_BUFFERS) % NUM_BUFFERS].data() + AppConfig::fftSize,
+                current_buffer
+                );
+
+            buffer_index = AppConfig::fftSize - AppConfig::fftHopSize;
         }
     }
 
     return 1;
 }
+
 
 FFTProcess::FFTProcess(QObject* parent) : QObject(parent) {
     this->moveToThread(&workerThread);
@@ -144,7 +151,7 @@ void FFTProcess::start() {
         }
 
         static int64_t dummy = 0;
-        ri_start_continuous_transfer(device, transfer_callback, &dummy);  // blocking
+        ri_start_continuous_transfer(device, transfer_callback, &dummy);
     });
 
     workerThread.start();
