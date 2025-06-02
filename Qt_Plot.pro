@@ -9,17 +9,20 @@ TARGET = FFT_Qwt_Plotter
 
 # === Source Files ===
 SOURCES += \
-    TimeD_Thread.cpp \
+    FFTProcess.cpp \
+    Features.cpp \
+    TimeDProcess.cpp \
     fft_config.cpp \
     main.cpp \
     mainwindow.cpp \
-    FFT_Thread.cpp \
     plotmanager.cpp
 
 # === Header Files ===
 HEADERS += \
-    fft_config.h \
-    fft_mode.h \
+    AppConfig.h \
+    FFTProcess.h \
+    Features.h \
+    TimeDProcess.h \
     mainwindow.h \
     plotmanager.h
 

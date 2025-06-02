@@ -1,42 +1,31 @@
+// PlotManager.h
 #ifndef PLOTMANAGER_H
 #define PLOTMANAGER_H
 
-// Qt / Qwt
 #include <QObject>
+#include <QVector>
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
+#include "Features.h"
 
-// Std
-#include <vector>
-#include <cstdint>
+class FFTProcess;
+class TimeDProcess;
 
-/*!
- * \brief Lightweight helper that owns and refreshes one FFT curve and
- *        one time‑domain curve.
- */
-class PlotManager : public QObject
-{
+class PlotManager : public QObject {
     Q_OBJECT
 public:
-    explicit PlotManager(QwtPlot *fftPlot,
-    QwtPlot *timePlot, QObject *parent = nullptr);
-
-    void setPause(bool paused);
-
+    explicit PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent = nullptr);
 
     void updateFFT(const double *fftBuffer, double sampleRate);
-
-    /*! Refresh the time‑domain curve. */
     void updateTime(const std::vector<uint16_t> &timeBuffer,
-    double  sampleRate,double  timeWindowSeconds,int maxPointsToPlot);
+    double sampleRate, double timeWindowSeconds, int maxPointsToPlot);
+    void updatePlot(FFTProcess* fft, TimeDProcess* time, bool isPaused, FFTMode mode);
 
 private:
-    QwtPlot       *fftPlot_;
-    QwtPlot       *timePlot_;
-    QwtPlotCurve  *fftCurve_;
-    QwtPlotCurve  *timeCurve_;
-    bool           isPaused_ = false;
+    QwtPlot *fftPlot_;
+    QwtPlot *timePlot_;
+    QwtPlotCurve *fftCurve_;
+    QwtPlotCurve *timeCurve_;
 };
 
 #endif // PLOTMANAGER_H
-

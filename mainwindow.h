@@ -1,42 +1,32 @@
+// MainWindow.h
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "plotmanager.h"
-#include "fft_mode.h"
+#include "Features.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
-{
+class FFTProcess;
+class TimeDProcess;
+class PlotManager;
+
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-private Q_SLOTS:
-    void togglePause();
-    void promptUserToSavePlot();
-    void saveTimePlotToFile();
-    void saveFFTPlotToFile();
-    void onModeChanged(int index);
-    void restartStreamsForMode();
-    int computeRequiredSampleCount() const;
-    void updatePeakFrequency(double frequency);
-
-
-
-
 private:
-    void updatePlot();
-
     Ui::MainWindow *ui;
+    FFTProcess     *fft;
+    TimeDProcess   *time;
     PlotManager    *plotManager;
     bool            isPaused = false;
-    FFTMode         currentMode;
+    FFTMode         currentMode = FFTMode::FullBandwidth;
 };
 
 #endif // MAINWINDOW_H
