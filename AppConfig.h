@@ -7,10 +7,10 @@
 struct AppConfig {
     static inline double sampleRate   = 80e6;
     static inline double timeWindowSeconds  = 100e-6;
-    static inline int maxPointsToPlot   = 10000;
+    static inline int maxPointsToPlot  = 10000;
     static inline int plotRefreshRateMs  = 5; // lower the better tbh, but theres better ways to improve responsiveness
 
-    static inline int fftSize = 19683	; // look into optimization
+    static inline int fftSize = 19683; // look into optimization ( bluestines, and primes)
     static inline int fftBins = fftSize / 2 + 1;
 
     static inline constexpr double fftOverlapFraction = 0.5;

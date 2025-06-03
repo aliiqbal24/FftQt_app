@@ -1,6 +1,6 @@
 // FFTProcess.cpp
 #include "FFTProcess.h"
-#include "TimeDProcess.h"          //  ← NEW include
+#include "TimeDProcess.h"
 #include "AppConfig.h"
 #include "ri.h"
 
@@ -19,26 +19,24 @@
 
 using PeakFrequencyCallback = void(*)(double);
 
-// shared state ────────────────────────────────────────────────────────────────
-static std::atomic<int>                fft_data_ready{0};
-static std::vector<double>             fft_magnitude_buffer(AppConfig::fftBins);
+// Shared state
+static std::atomic<int> fft_data_ready{0};
+static std::vector<double> fft_magnitude_buffer(AppConfig::fftBins);
+static std::vector<std::vector<double>> fft_buffers(NUM_BUFFERS, std::vector<double>(AppConfig::fftSize));
 
-static std::vector<std::vector<double>>fft_buffers(NUM_BUFFERS, std::vector<double>(AppConfig::fftSize));
-
-static int     write_index = 0;
-static double *fft_queue[NUM_BUFFERS];
+static int write_index = 0;
+static double* fft_queue[NUM_BUFFERS];
 static std::atomic<int> queue_head{0}, queue_tail{0};
-static pthread_mutex_t  queue_mutex      = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t   queue_not_empty  = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t queue_not_empty = PTHREAD_COND_INITIALIZER;
 
-static double *current_buffer = fft_buffers[0].data();
-static int     buffer_index   = 0;
+static double* current_buffer = fft_buffers[0].data();
+static int buffer_index = 0;
 
-static FFTMode              internalMode  = FFTMode::FullBandwidth;
-static FFTProcess          *fft_instance  = nullptr;
+static FFTMode internalMode = FFTMode::FullBandwidth;
+static FFTProcess* fft_instance = nullptr;
 static PeakFrequencyCallback peak_callback = nullptr;
 
-// helper to bounce peak‑freq across threads
 static void emit_peak(double freq)
 {
     if (!fft_instance) return;
@@ -48,34 +46,30 @@ static void emit_peak(double freq)
     });
 }
 
-// worker that consumes queued blocks and performs FFT
-static void *fft_thread_func(void *)
+static void* fft_thread_func(void*)
 {
-    auto *fft_output = new fftw_complex[AppConfig::fftBins];
-    fftw_plan plan   = fftw_plan_dft_r2c_1d(AppConfig::fftSize,
-                                          nullptr,
-                                          fft_output,
-                                          FFTW_ESTIMATE);
+    auto* fft_output = new fftw_complex[AppConfig::fftBins];
+    fftw_plan plan = fftw_plan_dft_r2c_1d(AppConfig::fftSize, nullptr, fft_output, FFTW_ESTIMATE);
 
     while (true) {
         pthread_mutex_lock(&queue_mutex);
         while (queue_head == queue_tail)
             pthread_cond_wait(&queue_not_empty, &queue_mutex);
-        double *fft_input = fft_queue[queue_head];
-        queue_head        = (queue_head + 1) % NUM_BUFFERS;
+        double* fft_input = fft_queue[queue_head];
+        queue_head = (queue_head + 1) % NUM_BUFFERS;
         pthread_mutex_unlock(&queue_mutex);
 
         fftw_execute_dft_r2c(plan, fft_input, fft_output);
 
-        int    peakIndex = 0;
+        int peakIndex = 0;
         double peakValue = 0.0;
 
-        const int ignoreBins     = AppConfig::fftBins / 10;
-        const int ignoreBinsTop  = static_cast<int>(AppConfig::fftBins * 0.9);
+        const int ignoreBins = AppConfig::fftBins / 10;
+        const int ignoreBinsTop = static_cast<int>(AppConfig::fftBins * 0.9);
 
         for (int j = 0; j < AppConfig::fftBins; ++j) {
-            double re  = fft_output[j][0];
-            double im  = fft_output[j][1];
+            double re = fft_output[j][0];
+            double im = fft_output[j][1];
             double mag = std::sqrt(re * re + im * im);
             fft_magnitude_buffer[j] = mag;
 
@@ -87,8 +81,7 @@ static void *fft_thread_func(void *)
 
         if (peak_callback) {
             double freq = (peakIndex *
-                           ((internalMode == FFTMode::LowBandwidth) ?
-                                200000.0 : 80000000.0)) /
+                           ((internalMode == FFTMode::LowBandwidth) ? 200000.0 : 80000000.0)) /
                           AppConfig::fftSize;
             freq /= (internalMode == FFTMode::LowBandwidth) ? 1000.0 : 1e6;
             peak_callback(freq);
@@ -96,14 +89,13 @@ static void *fft_thread_func(void *)
 
         fft_data_ready.store(1);
     }
+
     delete[] fft_output;
     return nullptr;
 }
 
-// USB transfer callback – fills the FFT ring *and* forwards to TimeDProcess
-static int transfer_callback(uint16_t *data, int ndata, int /*dataloss*/, void * /*user*/)
+static int transfer_callback(uint16_t* data, int ndata, int, void*)
 {
-    // Feed time-domain circular buffer
     TimeDProcess::transferCallback(data, ndata, 0, nullptr);
 
     constexpr int ADC_RATE = 80000000;
@@ -118,10 +110,8 @@ static int transfer_callback(uint16_t *data, int ndata, int /*dataloss*/, void *
         current_buffer[buffer_index++] = static_cast<double>(data[i]);
 
         if (buffer_index >= AppConfig::fftSize) {
-            // check for overflow before queueing
             int next_tail = (queue_tail + 1) % NUM_BUFFERS;
             if (next_tail == queue_head) {
-                // Queue is full – drop frame
                 buffer_index = AppConfig::fftSize - AppConfig::fftHopSize;
                 return 1;
             }
@@ -132,7 +122,6 @@ static int transfer_callback(uint16_t *data, int ndata, int /*dataloss*/, void *
             pthread_cond_signal(&queue_not_empty);
             pthread_mutex_unlock(&queue_mutex);
 
-            // prepare next buffer (overlap-save)
             write_index = (write_index + 1) % NUM_BUFFERS;
             current_buffer = fft_buffers[write_index].data();
 
@@ -149,23 +138,26 @@ static int transfer_callback(uint16_t *data, int ndata, int /*dataloss*/, void *
     return 1;
 }
 
-
-
-FFTProcess::FFTProcess(QObject *parent)
+FFTProcess::FFTProcess(QObject* parent)
     : QObject(parent)
 {
     this->moveToThread(&workerThread);
+
+    // Start FFT worker threads only once
+    for (int i = 0; i < NUM_FFT_THREADS; ++i)
+        pthread_create(&fftThreads[i], nullptr, fft_thread_func, nullptr);
 }
 
 FFTProcess::~FFTProcess()
 {
     workerThread.quit();
     workerThread.wait();
+    // NOTE: You could use pthread_cancel on threads if graceful stop is needed
 }
 
-void FFTProcess::start() {
-    static bool started = false;
-    if (started || workerThread.isRunning()) {
+void FFTProcess::start()
+{
+    if (workerThread.isRunning()) {
         qDebug() << "[FFTProcess] Already started.";
         return;
     }
@@ -176,10 +168,6 @@ void FFTProcess::start() {
         internalMode = currentMode;
         fft_instance = this;
         peak_callback = emit_peak;
-
-        pthread_t threads[NUM_FFT_THREADS];
-        for (int i = 0; i < NUM_FFT_THREADS; ++i)
-            pthread_create(&threads[i], nullptr, fft_thread_func, nullptr);
 
         ri_init();
         ri_device* device = ri_open_device();
@@ -193,11 +181,9 @@ void FFTProcess::start() {
     });
 
     workerThread.start();
-    started = true;
 }
 
-
-void FFTProcess::getMagnitudes(double *dst, int count)
+void FFTProcess::getMagnitudes(double* dst, int count)
 {
     if (fft_data_ready.exchange(0) == 0)
         return;
@@ -208,6 +194,6 @@ void FFTProcess::getMagnitudes(double *dst, int count)
 
 void FFTProcess::setMode(FFTMode mode)
 {
-    currentMode  = mode;
+    currentMode = mode;
     internalMode = mode;
 }

@@ -22,14 +22,16 @@ public:
     int  sampleCount() const;                    // total collected samples
     void getBuffer(uint16_t *dst, int count);    // copy ‘count’ samples to dst
 
+    static TimeDProcess* instance;
+
     // Called by FFTProcess’ USB callback to feed fresh ADC words
-    static int transferCallback(uint16_t *data,
-                                int ndata,
-                                int dataloss,
-                                void *user);
+    static int transferCallback(uint16_t *data, int ndata, int dataloss, void *user);
 
 private:
     QThread workerThread;
+    bool started;  // instance-level flag to prevent duplicate starts
+    std::atomic<bool> isResizing = false;  // testing line
+
 };
 
 #endif // TIMEDPROCESS_H

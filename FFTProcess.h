@@ -1,5 +1,7 @@
 #ifndef FFTPROCESS_H
 #define FFTPROCESS_H
+#define NUM_FFT_THREADS 3
+
 
 #include <QObject>
 #include <QThread>
@@ -25,6 +27,8 @@ Q_SIGNALS:
 private:
     FFTMode currentMode = FFTMode::FullBandwidth;
     QThread workerThread;
+    pthread_t fftThreads[NUM_FFT_THREADS]; // store FFT thread handles
+
 };
 
 #endif // FFTPROCESS_H

@@ -10,10 +10,11 @@
  * should we lower the size at low bandwidth
  * show the math, currently 10hz error in low bandwidth, kinda od for 100K
  *
- * consider starting off, and using turns it on
- * currently crashes first time dp80 is connected - might be due to two ri _init calls
+ * consider starting off, and using turns it on with one button
+ * This same as Pause Play button?
+ * Allows for device connecivity after program launched like pteradactyl -
  *
- * Allows for device connecivity after program lunched
+ *
  *
  *
  *
@@ -31,4 +32,6 @@
  *
  * Peak frequency is always 0, or low, test to see if it is adaptive, and reacts to unique peaks
  * crashes
+ *
+ * for high bandwidth mode, the nyquist edge is peaking randomly, wierd, - spectral leakage
 */

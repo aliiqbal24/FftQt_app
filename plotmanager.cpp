@@ -105,8 +105,7 @@ void PlotManager::updateFFT(const double *fftBuffer, double sampleRate)
     fftPlot_->replot();
 }
 
-void PlotManager::updateTime(const std::vector<uint16_t> &timeBuffer,
-                             double sampleRate, double timeWindowSeconds, int maxPointsToPlot)
+void PlotManager::updateTime(const std::vector<uint16_t> &timeBuffer,double sampleRate, double timeWindowSeconds, int maxPointsToPlot)
 {
     const int plotSamples = static_cast<int>(timeBuffer.size());
     const int step = std::max(1, plotSamples / maxPointsToPlot);
