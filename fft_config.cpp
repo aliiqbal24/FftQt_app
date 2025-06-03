@@ -4,13 +4,21 @@
 
 /* Improvements
  *
- * MODULARIZE CODE!!!!
+ * Add comments on code
+ *
+ * Ask Ayden,
+ * should we lower the size at low bandwidth
+ * show the math, currently 10hz error in low bandwidth, kinda od for 100K
+ *
+ * consider starting off, and using turns it on
+ * currently crashes first time dp80 is connected - might be due to two ri _init calls
+ *
+ * Allows for device connecivity after program lunched
  *
  *
- * Allow for greater FFT sizes - start with making it work in terminal, then shift to our plotting program
- * Build off the the vs code version, experiment with pure MKL  interface - might be break through
- * Ask about RI stream, how come now download
  *
+ *
+ * Consider
  *
  * FIX adjustable time, no more bugs, allow up to 10 sec both modes
  * panning and zoom in/out on graphs

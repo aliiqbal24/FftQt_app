@@ -3,29 +3,33 @@
 
 #include <QObject>
 #include <QThread>
-#include <vector>
-#include <cstdint>
+#include <stdint.h>
 
-// Forward-declare RI device type
-struct ri_device;
-
-class TimeDProcess : public QObject {
+/*!
+ * Handles the circular buffer used for the time‑domain plot.
+ * It no longer touches the RI device – samples arrive via the
+ * static transferCallback forwarded from FFTProcess.
+ */
+class TimeDProcess : public QObject
+{
     Q_OBJECT
-
 public:
     explicit TimeDProcess(QObject *parent = nullptr);
     ~TimeDProcess();
 
-    void start();                                         // Starts streaming
-    void resize(int size);                                // Resize circular buffer
-    int sampleCount() const;                              // Get number of collected samples
-    void getBuffer(uint16_t *dst, int count);             // Copy buffer contents for plotting
+    void start();                                // start worker thread
+    void resize(int size);                       // resize circular buffer
+    int  sampleCount() const;                    // total collected samples
+    void getBuffer(uint16_t *dst, int count);    // copy ‘count’ samples to dst
 
-    static int transferCallback(uint16_t *data, int ndata, int dataloss, void *user);  // Libri-compatible callback
+    // Called by FFTProcess’ USB callback to feed fresh ADC words
+    static int transferCallback(uint16_t *data,
+                                int ndata,
+                                int dataloss,
+                                void *user);
 
 private:
     QThread workerThread;
-    ri_device* dev = nullptr;  // Store device handle for ri_open_device
 };
 
 #endif // TIMEDPROCESS_H
