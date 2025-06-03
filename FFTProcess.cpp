@@ -22,8 +22,8 @@ using PeakFrequencyCallback = void(*)(double);
 // shared state ────────────────────────────────────────────────────────────────
 static std::atomic<int>                fft_data_ready{0};
 static std::vector<double>             fft_magnitude_buffer(AppConfig::fftBins);
-static std::vector<std::vector<double>>fft_buffers(NUM_BUFFERS,
-                                                    std::vector<double>(AppConfig::fftSize));
+
+static std::vector<std::vector<double>>fft_buffers(NUM_BUFFERS, std::vector<double>(AppConfig::fftSize));
 
 static int     write_index = 0;
 static double *fft_queue[NUM_BUFFERS];
@@ -101,17 +101,13 @@ static void *fft_thread_func(void *)
 }
 
 // USB transfer callback – fills the FFT ring *and* forwards to TimeDProcess
-static int transfer_callback(uint16_t *data,
-                             int ndata,
-                             int /*dataloss*/,
-                             void * /*user*/)
+static int transfer_callback(uint16_t *data, int ndata, int /*dataloss*/, void * /*user*/)
 {
-    // NEW: feed time‑domain circular buffer
+    // Feed time-domain circular buffer
     TimeDProcess::transferCallback(data, ndata, 0, nullptr);
 
     constexpr int ADC_RATE = 80000000;
-    int targetRate = (internalMode == FFTMode::LowBandwidth) ? 200000
-                                                             : ADC_RATE;
+    int targetRate = (internalMode == FFTMode::LowBandwidth) ? 200000 : ADC_RATE;
     int downsample = ADC_RATE / targetRate;
 
     static int skip = 0;
@@ -122,30 +118,38 @@ static int transfer_callback(uint16_t *data,
         current_buffer[buffer_index++] = static_cast<double>(data[i]);
 
         if (buffer_index >= AppConfig::fftSize) {
-            // queue block for FFT threads
+            // check for overflow before queueing
+            int next_tail = (queue_tail + 1) % NUM_BUFFERS;
+            if (next_tail == queue_head) {
+                // Queue is full – drop frame
+                buffer_index = AppConfig::fftSize - AppConfig::fftHopSize;
+                return 1;
+            }
+
             pthread_mutex_lock(&queue_mutex);
             fft_queue[queue_tail] = current_buffer;
-            queue_tail = (queue_tail + 1) % NUM_BUFFERS;
+            queue_tail = next_tail;
             pthread_cond_signal(&queue_not_empty);
             pthread_mutex_unlock(&queue_mutex);
 
-            // prepare next buffer (overlap‑save)
-            write_index      = (write_index + 1) % NUM_BUFFERS;
-            current_buffer   = fft_buffers[write_index].data();
+            // prepare next buffer (overlap-save)
+            write_index = (write_index + 1) % NUM_BUFFERS;
+            current_buffer = fft_buffers[write_index].data();
 
-            std::copy(fft_buffers[(write_index - 1 + NUM_BUFFERS) % NUM_BUFFERS]
-                              .data() + AppConfig::fftHopSize,
-                      fft_buffers[(write_index - 1 + NUM_BUFFERS) % NUM_BUFFERS]
-                              .data() + AppConfig::fftSize,
-                      current_buffer);
+            std::copy(
+                fft_buffers[(write_index - 1 + NUM_BUFFERS) % NUM_BUFFERS].data() + AppConfig::fftHopSize,
+                fft_buffers[(write_index - 1 + NUM_BUFFERS) % NUM_BUFFERS].data() + AppConfig::fftSize,
+                current_buffer
+                );
 
             buffer_index = AppConfig::fftSize - AppConfig::fftHopSize;
         }
     }
+
     return 1;
 }
 
-// ────────────────────────────────────────────────────────────────
+
 
 FFTProcess::FFTProcess(QObject *parent)
     : QObject(parent)
@@ -159,26 +163,26 @@ FFTProcess::~FFTProcess()
     workerThread.wait();
 }
 
-void FFTProcess::start()
-{
-    if (workerThread.isRunning())
+void FFTProcess::start() {
+    static bool started = false;
+    if (started || workerThread.isRunning()) {
+        qDebug() << "[FFTProcess] Already started.";
         return;
+    }
 
     connect(&workerThread, &QThread::started, this, [this]() {
         qDebug() << "[FFTProcess] Thread started";
 
-        internalMode  = currentMode;
-        fft_instance  = this;
+        internalMode = currentMode;
+        fft_instance = this;
         peak_callback = emit_peak;
 
-        // spawn FFT workers
         pthread_t threads[NUM_FFT_THREADS];
         for (int i = 0; i < NUM_FFT_THREADS; ++i)
             pthread_create(&threads[i], nullptr, fft_thread_func, nullptr);
 
-        // single device / single continuous‑transfer
         ri_init();
-        ri_device *device = ri_open_device();
+        ri_device* device = ri_open_device();
         if (!device) {
             qWarning("RI device not found");
             return;
@@ -189,7 +193,9 @@ void FFTProcess::start()
     });
 
     workerThread.start();
+    started = true;
 }
+
 
 void FFTProcess::getMagnitudes(double *dst, int count)
 {

@@ -29,22 +29,22 @@ TimeDProcess::~TimeDProcess()
     workerThread.wait();
 }
 
-void TimeDProcess::start()
-{
-    if (workerThread.isRunning())
+void TimeDProcess::start() {
+    static bool started = false;
+    if (started || workerThread.isRunning()) {
+        qDebug() << "[TimeDProcess] Already started.";
         return;
+    }
 
     connect(&workerThread, &QThread::started, this, [this]() {
         qDebug() << "[TimeDProcess] Thread started";
 
-        // allocate buffer once, if not already done
         if (!time_buffer)
             resize(dynamic_time_buffer_size);
-
-        // no device interaction here – samples arrive via transferCallback
     });
 
     workerThread.start();
+    started = true;
 }
 
 void TimeDProcess::resize(int size)
