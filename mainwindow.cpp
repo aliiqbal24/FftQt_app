@@ -101,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent)
     fft->setMode(currentMode);
 
     // Delay starting the streaming until after the GUI is fully shown
-    QTimer::singleShot(0, this, [this] {
+     QTimer::singleShot(0, this, [this] {
         qDebug() << "[MainWindow] Delayed FFT and Time start...";
 
         fft->start();
@@ -109,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
 
         time->start();
         qDebug() << "[MainWindow] Time started.";
-    });
+    });           // dont start yet
 }
 
 MainWindow::~MainWindow() {

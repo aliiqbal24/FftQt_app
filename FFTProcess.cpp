@@ -65,7 +65,7 @@ static void* fft_thread_func(void*)
         double peakValue = 0.0;
 
         const int ignoreBins = AppConfig::fftBins / 10;
-        const int ignoreBinsTop = static_cast<int>(AppConfig::fftBins * 0.9);
+        const int ignoreBinsTop = static_cast<int>(AppConfig::fftBins * 0.99);
 
         for (int j = 0; j < AppConfig::fftBins; ++j) {
             double re = fft_output[j][0];
@@ -81,8 +81,7 @@ static void* fft_thread_func(void*)
 
         if (peak_callback) {
             double freq = (peakIndex *
-                           ((internalMode == FFTMode::LowBandwidth) ? 200000.0 : 80000000.0)) /
-                          AppConfig::fftSize;
+                           ((internalMode == FFTMode::LowBandwidth) ? 200000.0 : 80000000.0)) /AppConfig::fftSize;
             freq /= (internalMode == FFTMode::LowBandwidth) ? 1000.0 : 1e6;
             peak_callback(freq);
         }

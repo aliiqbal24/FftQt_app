@@ -42,8 +42,13 @@ INCLUDEPATH += \
 LIBS += \
     -L$$PWD/Plot_dependencies/libri-0.9.5/lib64 -lri \
     -L$$PWD/Plot_dependencies/mkl/latest/lib -lmkl_rt \
-    -LC:/Ultracoustics-ALI-Playground/qwt-6.3.0/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/lib -lqwtd \
+    -LC:/Ultracoustics-ALI-Playground/qwt-6.3.0/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/lib -lqwt \
     -lpthread -lm
 
 RESOURCES += \
     icons.qrc
+
+
+#### CONSIDER - this will allow you to run the .exe many times, and handle what happens when we run again while running
+# QMAKE_PRE_LINK += taskkill /F /IM FFT_Qwt_Plotter.exe > nul 2>&1
+

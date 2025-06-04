@@ -11,6 +11,9 @@ struct AppConfig {
     static inline int plotRefreshRateMs  = 5; // lower the better tbh, but theres better ways to improve responsiveness
 
     static inline int fftSize = 19683; // look into optimization ( bluestines, and primes)
+    // read https://www.intel.com/content/www/us/en/developer/articles/release-notes/onemkl-release-notes.html
+    // talks about why we couldn't do even size
+
     static inline int fftBins = fftSize / 2 + 1;
 
     static inline constexpr double fftOverlapFraction = 0.5;
