@@ -92,6 +92,11 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     timeCurve_->setPen(QPen(neonPink,0.45));
     timeCurve_->attach(timePlot_);
 
+    // fix initial y-axis ranges so they don't autoscale when new data arrives
+    // users can still zoom or pan to adjust the view
+    fftPlot_->setAxisScale(QwtPlot::yLeft, 0.0, 8.0);      // log magnitude
+    timePlot_->setAxisScale(QwtPlot::yLeft, 0.0, 150.0);   // power in uW
+
     new QwtPlotPanner(fftPlot_->canvas());
     new QwtPlotMagnifier(fftPlot_->canvas());
     new QwtPlotPanner(timePlot_->canvas());
