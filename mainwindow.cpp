@@ -8,6 +8,8 @@
 
 #include <QTimer>
 #include <QDebug>
+#include <QLayout>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -17,6 +19,16 @@ MainWindow::MainWindow(QWidget *parent)
     , plotManager(nullptr)
 {
     ui->setupUi(this);
+
+    // Remove layout margins so zoom buttons align with axes
+    if (ui->mainLayout)
+        ui->mainLayout->setContentsMargins(0, 0, 0, 0);
+    if (ui->sideLayout)
+        ui->sideLayout->setContentsMargins(0, 0, 0, 0);
+    if (ui->horizontalSplitter) {
+        ui->horizontalSplitter->setStretchFactor(0, 1);
+        ui->horizontalSplitter->setStretchFactor(1, 0);
+    }
 
     QColor lightGray(183, 182, 191);
     QColor backgroundColor(13, 13, 13);

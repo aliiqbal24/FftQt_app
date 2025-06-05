@@ -18,7 +18,7 @@ public:
     ~FFTProcess();
 
     void start();
-    void getMagnitudes(double *dst, int count);
+    bool getMagnitudes(double *dst, int count);
     void setMode(FFTMode mode);
 
 Q_SIGNALS:

@@ -65,7 +65,7 @@ static void* fft_thread_func(void*)
         double peakValue = 0.0;
 
         const int ignoreBins = AppConfig::fftBins / 10;
-        const int ignoreBinsTop = static_cast<int>(AppConfig::fftBins * 0.99);
+        const int ignoreBinsTop = static_cast<int>(AppConfig::fftBins * 0.99); // ignore spikes at beginning and end
 
         for (int j = 0; j < AppConfig::fftBins; ++j) {
             double re = fft_output[j][0];
@@ -182,13 +182,15 @@ void FFTProcess::start()
     workerThread.start();
 }
 
-void FFTProcess::getMagnitudes(double* dst, int count)
+bool FFTProcess::getMagnitudes(double* dst, int count)
 {
     if (fft_data_ready.exchange(0) == 0)
-        return;
+        return false;
 
     for (int i = 0; i < count && i < AppConfig::fftBins; ++i)
         dst[i] = fft_magnitude_buffer[i];
+
+    return true;
 }
 
 void FFTProcess::setMode(FFTMode mode)

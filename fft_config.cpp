@@ -17,6 +17,13 @@
  *
  * zoom in and outtable
  *
+ *   WE have Qwt zoom and Qwtoanner
+ *
+ *   panner works well, but the plot should continue while panning, right now when we click it pauses
+ *   currently the zoom on only zooms the y axis of the ftt plot
+ *   and the time plot is currently incompatible with zoom,
+ *
+ *   the slider between the plots should be visible
  *
  *
  * Allows for device connecivity after program launched like pteradactyl -

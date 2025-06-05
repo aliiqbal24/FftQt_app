@@ -13,6 +13,8 @@
 
 #include <qwt_plot_grid.h>
 #include <qwt_scale_widget.h>
+#include <qwt_plot_panner.h>
+#include <qwt_plot_magnifier.h>
 
 
 PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
@@ -39,6 +41,7 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     fftPlot_->setAxisTitle(QwtPlot::yLeft, QwtText("Log Magnitude"));
     fftPlot_->setAxisMaxMajor(QwtPlot::yLeft, 6);
     fftPlot_->setAxisScale(QwtPlot::yLeft, 0.0, 8.0);
+    fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0, (AppConfig::sampleRate / 2.0) / (AppConfig::sampleRate > 1e6 ? 1e6 : 1e3));
 
     for (int axis = 0; axis < QwtPlot::axisCnt; ++axis) {
         if (auto *scaleWidget = fftPlot_->axisWidget(axis)) {
@@ -64,6 +67,8 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     timePlot_->setAxisTitle(QwtPlot::xBottom, QwtText("Time (\u00b5s)"));
     timePlot_->setAxisTitle(QwtPlot::yLeft, QwtText("Signal Value"));
     timePlot_->setAxisMaxMajor(QwtPlot::yLeft, 4);
+    timePlot_->setAxisScale(QwtPlot::yLeft, 0.0, 150.0);
+    timePlot_->setAxisScale(QwtPlot::xBottom, 0.0, AppConfig::timeWindowSeconds * 1e6);
 
     for (int axis = 0; axis < QwtPlot::axisCnt; ++axis) {
         if (auto *scaleWidget = timePlot_->axisWidget(axis)) {
@@ -84,6 +89,22 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     timeCurve_ = new QwtPlotCurve("Time Domain");
     timeCurve_->setPen(QPen(neonPink, 0.45));
     timeCurve_->attach(timePlot_);
+
+    // Interactive controls
+    auto *fftPanner = new QwtPlotPanner(fftPlot_->canvas());
+    fftPanner->setMouseButton(Qt::LeftButton);
+    new QwtPlotMagnifier(fftPlot_->canvas());
+
+    auto *timePanner = new QwtPlotPanner(timePlot_->canvas());
+    timePanner->setMouseButton(Qt::LeftButton);
+    new QwtPlotMagnifier(timePlot_->canvas());
+
+    // Zoom buttons
+    createZoomButtons(fftPlot_, fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_);
+    createZoomButtons(timePlot_, timePlusX_, timeMinusX_, timePlusY_, timeMinusY_);
+
+    fftPlot_->installEventFilter(this);
+    timePlot_->installEventFilter(this);
 }
 
 void PlotManager::updateFFT(const double *fftBuffer, double sampleRate)
@@ -101,7 +122,6 @@ void PlotManager::updateFFT(const double *fftBuffer, double sampleRate)
 
     fftCurve_->setSamples(freqs, mags_Log);
     fftPlot_->setAxisTitle(QwtPlot::xBottom, QwtText(sampleRate > 1e6 ? "Frequency (MHz)" : "Frequency (KHz)"));
-    fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0, (sampleRate / 2.0) / (sampleRate > 1e6 ? 1e6 : 1e3));
     fftPlot_->replot();
 }
 
@@ -122,8 +142,6 @@ void PlotManager::updateTime(const std::vector<uint16_t> &timeBuffer,double samp
 
     timeCurve_->setSamples(timeX_us, powerY_uW);
     timePlot_->setAxisTitle(QwtPlot::yLeft, QwtText("Power (µW)"));
-    timePlot_->setAxisScale(QwtPlot::yLeft, 0.0, 150.0);
-    timePlot_->setAxisScale(QwtPlot::xBottom, 0.0, timeWindowSeconds * 1e6);
     timePlot_->replot();
 }
 
@@ -143,4 +161,105 @@ void PlotManager::updatePlot(FFTProcess* fft, TimeDProcess* time, bool isPaused,
         time->getBuffer(buffer.data(), count);
         updateTime(buffer, AppConfig::sampleRate, AppConfig::timeWindowSeconds, AppConfig::maxPointsToPlot);
     }
+}
+
+void PlotManager::createZoomButtons(QwtPlot *plot,
+                                    QToolButton *&plusX, QToolButton *&minusX,
+                                    QToolButton *&plusY, QToolButton *&minusY)
+{
+    plusX = new QToolButton(plot);
+    minusX = new QToolButton(plot);
+    plusY = new QToolButton(plot);
+    minusY = new QToolButton(plot);
+
+    QList<QToolButton*> buttons{plusX, minusX, plusY, minusY};
+    for (auto *btn : buttons) {
+        btn->setText(btn == plusX || btn == plusY ? "+" : "-");
+        btn->setFixedSize(20, 20);
+        btn->setStyleSheet("background-color: gray; color: black; border: 1px solid black;");
+        btn->raise();
+    }
+
+    connect(plusX, &QToolButton::clicked, this, &PlotManager::zoomInX);
+    connect(minusX, &QToolButton::clicked, this, &PlotManager::zoomOutX);
+    connect(plusY, &QToolButton::clicked, this, &PlotManager::zoomInY);
+    connect(minusY, &QToolButton::clicked, this, &PlotManager::zoomOutY);
+
+    positionZoomButtons(plot, plusX, minusX, plusY, minusY);
+}
+
+void PlotManager::positionZoomButtons(QwtPlot *plot, QToolButton *plusX, QToolButton *minusX, QToolButton *plusY, QToolButton *minusY)
+{
+    auto *yWidget = plot->axisWidget(QwtPlot::yLeft);
+    auto *xWidget = plot->axisWidget(QwtPlot::xBottom);
+    if (!yWidget || !xWidget)
+        return;
+
+    int offset = 2;
+    QPoint yPos = yWidget->geometry().topLeft();
+    plusY->move(yPos.x() - plusY->width() - offset, yPos.y());
+    minusY->move(yPos.x() - minusY->width() - offset, yPos.y() + plusY->height() + offset);
+
+    QPoint xPos = xWidget->geometry().bottomLeft();
+    minusX->move(xPos.x(), xPos.y() + offset);
+    plusX->move(xPos.x() + minusX->width() + offset, xPos.y() + offset);
+}
+
+bool PlotManager::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Resize) {
+        if (obj == fftPlot_)
+            positionZoomButtons(fftPlot_, fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_);
+        else if (obj == timePlot_)
+            positionZoomButtons(timePlot_, timePlusX_, timeMinusX_, timePlusY_, timeMinusY_);
+    }
+    return QObject::eventFilter(obj, event);
+}
+
+void PlotManager::zoomInX()
+{
+    QwtPlot *plot = qobject_cast<QwtPlot *>(sender()->parent());
+    auto div = plot->axisScaleDiv(QwtPlot::xBottom);
+    double min = div.lowerBound();
+    double max = div.upperBound();
+    double center = (min + max) / 2.0;
+    double half = (max - min) / 2.5; // zoom in factor 1.25
+    plot->setAxisScale(QwtPlot::xBottom, center - half, center + half);
+    plot->replot();
+}
+
+void PlotManager::zoomOutX()
+{
+    QwtPlot *plot = qobject_cast<QwtPlot *>(sender()->parent());
+    auto div = plot->axisScaleDiv(QwtPlot::xBottom);
+    double min = div.lowerBound();
+    double max = div.upperBound();
+    double center = (min + max) / 2.0;
+    double half = (max - min) * 0.625; // zoom out factor 1.6 (approx 1/0.625)
+    plot->setAxisScale(QwtPlot::xBottom, center - half, center + half);
+    plot->replot();
+}
+
+void PlotManager::zoomInY()
+{
+    QwtPlot *plot = qobject_cast<QwtPlot *>(sender()->parent());
+    auto div = plot->axisScaleDiv(QwtPlot::yLeft);
+    double min = div.lowerBound();
+    double max = div.upperBound();
+    double center = (min + max) / 2.0;
+    double half = (max - min) / 2.5;
+    plot->setAxisScale(QwtPlot::yLeft, center - half, center + half);
+    plot->replot();
+}
+
+void PlotManager::zoomOutY()
+{
+    QwtPlot *plot = qobject_cast<QwtPlot *>(sender()->parent());
+    auto div = plot->axisScaleDiv(QwtPlot::yLeft);
+    double min = div.lowerBound();
+    double max = div.upperBound();
+    double center = (min + max) / 2.0;
+    double half = (max - min) * 0.625;
+    plot->setAxisScale(QwtPlot::yLeft, center - half, center + half);
+    plot->replot();
 }
