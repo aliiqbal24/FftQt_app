@@ -70,6 +70,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Proper single initialization of plot manager
     plotManager = new PlotManager(ui->FFT_plot, ui->Time_plot, this);
+    plotManager->attachZoomButtons(ui->fftPlusX, ui->fftMinusX,
+                                   ui->fftPlusY, ui->fftMinusY,
+                                   ui->timePlusX, ui->timeMinusX,
+                                   ui->timePlusY, ui->timeMinusY);
 
     connect(ui->PausePlay, &QPushButton::clicked, this, [=]() {
         Features::togglePause(isPaused);
