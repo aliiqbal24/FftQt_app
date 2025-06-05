@@ -79,8 +79,6 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
         w->setPalette(pal);
 
         // set the color of the backbone and tick marks
-        w->setColor(color);
-
         QwtText title = w->title();
         title.setColor(color);
         w->setTitle(title);
@@ -111,6 +109,16 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
 
     acquireZoomButtons();
 }
+
+static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
+{
+    auto d = p->axisScaleDiv(axis);
+    double c = (d.lowerBound() + d.upperBound()) / 2.0;
+    double h = (d.upperBound() - d.lowerBound()) * factorIn;
+    p->setAxisScale(axis, c - h/2, c + h/2);
+    p->replot();
+}
+
 
 void PlotManager::acquireZoomButtons()
 {
@@ -210,12 +218,4 @@ void PlotManager::updatePlot(FFTProcess *fft, TimeDProcess *time,
     }
 }
 
-static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
-{
-    auto d = p->axisScaleDiv(axis);
-    double c = (d.lowerBound() + d.upperBound()) / 2.0;
-    double h = (d.upperBound() - d.lowerBound()) * factorIn;
-    p->setAxisScale(axis, c - h/2, c + h/2);
-    p->replot();
-}
 
