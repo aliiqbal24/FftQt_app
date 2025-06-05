@@ -4,10 +4,11 @@
 
 #include <QObject>
 #include <QVector>
-#include <qwt_plot.h>
-#include <qwt_plot_curve.h>
 #include <QToolButton>
 #include <QEvent>
+#include <qwt_plot.h>
+#include <qwt_plot_curve.h>
+
 #include "Features.h"
 
 class FFTProcess;
@@ -20,8 +21,10 @@ public:
 
     void updateFFT(const double *fftBuffer, double sampleRate);
     void updateTime(const std::vector<uint16_t> &timeBuffer,
-                    double sampleRate, double timeWindowSeconds, int maxPointsToPlot);
-    void updatePlot(FFTProcess* fft, TimeDProcess* time, bool isPaused, FFTMode mode);
+                    double sampleRate, double timeWindowSeconds,
+                    int maxPointsToPlot);
+    void updatePlot(FFTProcess *fft, TimeDProcess *time,
+                    bool isPaused, FFTMode mode);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -33,29 +36,28 @@ private Q_SLOTS:
     void zoomOutY();
 
 private:
-    void createZoomButtons(QwtPlot *plot,
-                           QToolButton *&plusX, QToolButton *&minusX,
-                           QToolButton *&plusY, QToolButton *&minusY);
+    // fetch + wire-up the buttons defined in the .ui file
+    void acquireZoomButtons();
     void positionZoomButtons(QwtPlot *plot,
-                             QToolButton *plusX, QToolButton *minusX,
-                             QToolButton *plusY, QToolButton *minusY);
+                             QToolButton *plusX,  QToolButton *minusX,
+                             QToolButton *plusY,  QToolButton *minusY);
 
-private:
-    QwtPlot *fftPlot_;
-    QwtPlot *timePlot_;
-    QwtPlotCurve *fftCurve_;
-    QwtPlotCurve *timeCurve_;
+    // plots & curves
+    QwtPlot        *fftPlot_;
+    QwtPlot        *timePlot_;
+    QwtPlotCurve   *fftCurve_;
+    QwtPlotCurve   *timeCurve_;
 
-    // Zoom buttons
-    QToolButton *fftPlusX_;
-    QToolButton *fftMinusX_;
-    QToolButton *fftPlusY_;
-    QToolButton *fftMinusY_;
-
-    QToolButton *timePlusX_;
-    QToolButton *timeMinusX_;
-    QToolButton *timePlusY_;
-    QToolButton *timeMinusY_;
+    // eight zoom buttons
+    QToolButton *fftPlusX_{};
+    QToolButton *fftMinusX_{};
+    QToolButton *fftPlusY_{};
+    QToolButton *fftMinusY_{};
+    QToolButton *timePlusX_{};
+    QToolButton *timeMinusX_{};
+    QToolButton *timePlusY_{};
+    QToolButton *timeMinusY_{};
 };
 
 #endif // PLOTMANAGER_H
+
