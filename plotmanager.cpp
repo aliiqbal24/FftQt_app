@@ -70,10 +70,18 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
 
     auto setAxisColor = [&](QwtPlot *plot, int axis, const QColor &color) {
         QwtScaleWidget *w = plot->axisWidget(axis);
-        if (!w) return;
+        if (!w)
+            return;
+
         QPalette pal = w->palette();
+        // ensure tick labels use the same color as the axis titles
         pal.setColor(QPalette::WindowText, color);
+        pal.setColor(QPalette::Text, color);
         w->setPalette(pal);
+
+        // set the color of the backbone and tick marks
+        w->setColor(color);
+
         QwtText title = w->title();
         title.setColor(color);
         w->setTitle(title);
