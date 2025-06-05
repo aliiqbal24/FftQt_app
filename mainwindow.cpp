@@ -25,6 +25,10 @@ MainWindow::MainWindow(QWidget *parent)
         ui->mainLayout->setContentsMargins(0, 0, 0, 0);
     if (ui->sideLayout)
         ui->sideLayout->setContentsMargins(0, 0, 0, 0);
+    if (ui->gridLayoutFFT)
+        ui->gridLayoutFFT->setContentsMargins(0, 0, 0, 0);
+    if (ui->gridLayoutTime)
+        ui->gridLayoutTime->setContentsMargins(0, 0, 0, 0);
     if (ui->horizontalSplitter) {
         ui->horizontalSplitter->setStretchFactor(0, 1);
         ui->horizontalSplitter->setStretchFactor(1, 0);

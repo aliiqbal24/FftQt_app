@@ -5,7 +5,6 @@
 #include <QObject>
 #include <QVector>
 #include <QToolButton>
-#include <QEvent>
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
 
@@ -27,20 +26,11 @@ public:
                     bool isPaused, FFTMode mode);
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
-
-private Q_SLOTS:
-    void zoomInX();
-    void zoomOutX();
-    void zoomInY();
-    void zoomOutY();
+    // no event filter needed once buttons are in a layout
 
 private:
     // fetch + wire-up the buttons defined in the .ui file
     void acquireZoomButtons();
-    void positionZoomButtons(QwtPlot *plot,
-                             QToolButton *plusX,  QToolButton *minusX,
-                             QToolButton *plusY,  QToolButton *minusY);
 
     // plots & curves
     QwtPlot        *fftPlot_;

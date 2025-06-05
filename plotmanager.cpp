@@ -8,7 +8,6 @@
 #include <QPen>
 #include <QPalette>
 #include <QToolButton>
-#include <QEvent>
 #include <cmath>
 #include <algorithm>
 
@@ -111,22 +110,22 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     new QwtPlotMagnifier(timePlot_->canvas());
 
     acquireZoomButtons();
-
-    fftPlot_->installEventFilter(this);
-    timePlot_->installEventFilter(this);
 }
 
 void PlotManager::acquireZoomButtons()
 {
-    fftPlusX_  = fftPlot_->findChild<QToolButton*>("fftPlusX");
-    fftMinusX_ = fftPlot_->findChild<QToolButton*>("fftMinusX");
-    fftPlusY_  = fftPlot_->findChild<QToolButton*>("fftPlusY");
-    fftMinusY_ = fftPlot_->findChild<QToolButton*>("fftMinusY");
+    QWidget *fftCont  = fftPlot_->parentWidget();
+    QWidget *timeCont = timePlot_->parentWidget();
 
-    timePlusX_  = timePlot_->findChild<QToolButton*>("timePlusX");
-    timeMinusX_ = timePlot_->findChild<QToolButton*>("timeMinusX");
-    timePlusY_  = timePlot_->findChild<QToolButton*>("timePlusY");
-    timeMinusY_ = timePlot_->findChild<QToolButton*>("timeMinusY");
+    fftPlusX_  = fftCont->findChild<QToolButton*>("fftPlusX");
+    fftMinusX_ = fftCont->findChild<QToolButton*>("fftMinusX");
+    fftPlusY_  = fftCont->findChild<QToolButton*>("fftPlusY");
+    fftMinusY_ = fftCont->findChild<QToolButton*>("fftMinusY");
+
+    timePlusX_  = timeCont->findChild<QToolButton*>("timePlusX");
+    timeMinusX_ = timeCont->findChild<QToolButton*>("timeMinusX");
+    timePlusY_  = timeCont->findChild<QToolButton*>("timePlusY");
+    timeMinusY_ = timeCont->findChild<QToolButton*>("timeMinusY");
 
     QList<QToolButton*> all { fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_,
                              timePlusX_,timeMinusX_,timePlusY_,timeMinusY_ };
@@ -136,51 +135,20 @@ void PlotManager::acquireZoomButtons()
         if (!b) { qWarning("[PlotManager] Zoom button missing in .ui !"); continue; }
         b->setFixedSize(20,20);
         b->setStyleSheet("background:#808080; color:black; border:1px solid black;");
+        b->raise();
     }
 
-    connect(fftPlusX_,  &QToolButton::clicked, this, &PlotManager::zoomInX);
-    connect(fftMinusX_, &QToolButton::clicked, this, &PlotManager::zoomOutX);
-    connect(fftPlusY_,  &QToolButton::clicked, this, &PlotManager::zoomInY);
-    connect(fftMinusY_, &QToolButton::clicked, this, &PlotManager::zoomOutY);
-    connect(timePlusX_,  &QToolButton::clicked, this, &PlotManager::zoomInX);
-    connect(timeMinusX_, &QToolButton::clicked, this, &PlotManager::zoomOutX);
-    connect(timePlusY_,  &QToolButton::clicked, this, &PlotManager::zoomInY);
-    connect(timeMinusY_, &QToolButton::clicked, this, &PlotManager::zoomOutY);
+    if (fftPlusX_)  connect(fftPlusX_,  &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::xBottom, 0.5); });
+    if (fftMinusX_) connect(fftMinusX_, &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::xBottom, 1.6); });
+    if (fftPlusY_)  connect(fftPlusY_,  &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::yLeft,  0.5); });
+    if (fftMinusY_) connect(fftMinusY_, &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::yLeft,  1.6); });
 
-    positionZoomButtons(fftPlot_,  fftPlusX_,  fftMinusX_,  fftPlusY_,  fftMinusY_);
-    positionZoomButtons(timePlot_, timePlusX_, timeMinusX_, timePlusY_, timeMinusY_);
+    if (timePlusX_)  connect(timePlusX_,  &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::xBottom, 0.5); });
+    if (timeMinusX_) connect(timeMinusX_, &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::xBottom, 1.6); });
+    if (timePlusY_)  connect(timePlusY_,  &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::yLeft,  0.5); });
+    if (timeMinusY_) connect(timeMinusY_, &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::yLeft,  1.6); });
 }
 
-void PlotManager::positionZoomButtons(QwtPlot *plot,
-                                      QToolButton *plusX,  QToolButton *minusX,
-                                      QToolButton *plusY,  QToolButton *minusY)
-{
-    if (!plot) return;
-    auto *yW = plot->axisWidget(QwtPlot::yLeft);
-    auto *xW = plot->axisWidget(QwtPlot::xBottom);
-    if (!yW || !xW) return;
-
-    const int pad = 2;
-    QPoint y0 = yW->geometry().topLeft();
-    plusY ->move(y0.x() - plusY->width()  - pad, y0.y());
-    minusY->move(y0.x() - minusY->width() - pad, y0.y() + plusY->height() + pad);
-
-    QPoint x0 = xW->geometry().bottomLeft();
-    minusX->move(x0.x(),                   x0.y() + pad);
-    plusX ->move(x0.x() + minusX->width() + pad, x0.y() + pad);
-}
-
-bool PlotManager::eventFilter(QObject *obj, QEvent *e)
-{
-    if (e->type() == QEvent::Resize)
-    {
-        if (obj == fftPlot_)
-            positionZoomButtons(fftPlot_,  fftPlusX_,  fftMinusX_,  fftPlusY_,  fftMinusY_);
-        else if (obj == timePlot_)
-            positionZoomButtons(timePlot_, timePlusX_, timeMinusX_, timePlusY_, timeMinusY_);
-    }
-    return QObject::eventFilter(obj, e);
-}
 
 void PlotManager::updateFFT(const double *buf, double Fs)
 {
@@ -251,7 +219,3 @@ static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
     p->replot();
 }
 
-void PlotManager::zoomInX()  { zoomAxis(qobject_cast<QwtPlot*>(sender()->parent()), QwtPlot::xBottom, 0.5); }
-void PlotManager::zoomOutX() { zoomAxis(qobject_cast<QwtPlot*>(sender()->parent()), QwtPlot::xBottom, 1.6); }
-void PlotManager::zoomInY()  { zoomAxis(qobject_cast<QwtPlot*>(sender()->parent()), QwtPlot::yLeft,  0.5); }
-void PlotManager::zoomOutY() { zoomAxis(qobject_cast<QwtPlot*>(sender()->parent()), QwtPlot::yLeft,  1.6); }
