@@ -27,6 +27,10 @@ struct AppConfig {
     // signal val to uW conversion - double check this conversion
     static inline double adcOffset = 49555.0;
     static inline double adcToMicroWatts   = 0.0147;
+
+    // Toggle Hilbert-based envelope normalization of each FFT window
+    static inline bool envelopeFilterEnabled = true;
+
 };
 
 #endif // APPCONFIG_H

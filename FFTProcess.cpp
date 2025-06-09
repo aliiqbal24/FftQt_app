@@ -13,6 +13,8 @@
 #include <QThread>
 #include <vector>
 #include <atomic>
+#include <algorithm> // try to implement filter
+
 
 #define NUM_BUFFERS     8
 #define NUM_FFT_THREADS 3
@@ -37,6 +39,63 @@ static int buffer_index = 0;
 static FFTMode internalMode = FFTMode::FullBandwidth;
 static FFTProcess* fft_instance = nullptr;
 static PeakFrequencyCallback peak_callback = nullptr;
+
+
+// new envelope filter Hillbert function:
+static void envelope_filter(double* buffer)
+{
+    if (!AppConfig::envelopeFilterEnabled)
+        return;
+
+    static bool init = false;
+    static fftw_complex* hilbert_time = nullptr;
+    static fftw_complex* hilbert_freq = nullptr;
+    static fftw_plan fwdPlan;
+    static fftw_plan invPlan;
+    static std::vector<double> amplitude(AppConfig::fftSize);
+    static double env_avg = 0.0;
+
+    if (!init) {
+        hilbert_time = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * AppConfig::fftSize);
+        hilbert_freq = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * AppConfig::fftSize);
+        fwdPlan = fftw_plan_dft_1d(AppConfig::fftSize, hilbert_time, hilbert_freq, FFTW_FORWARD, FFTW_ESTIMATE);
+        invPlan = fftw_plan_dft_1d(AppConfig::fftSize, hilbert_freq, hilbert_time, FFTW_BACKWARD, FFTW_ESTIMATE);
+        init = true;
+    }
+
+    for (int i = 0; i < AppConfig::fftSize; ++i) {
+        hilbert_time[i][0] = buffer[i]; // real part
+        hilbert_time[i][1] = 0.0;    // imaginary part
+    }
+
+    fftw_execute(fwdPlan); // fft perform
+
+
+    // CREATE analytical signal
+    for (int k = 1; k < AppConfig::fftSize / 2; ++k) {
+        hilbert_freq[k][0] *= 2.0;
+        hilbert_freq[k][1] *= 2.0;
+    }
+    for (int k = AppConfig::fftSize / 2 + 1; k < AppConfig::fftSize; ++k) {
+        hilbert_freq[k][0] = 0.0;
+        hilbert_freq[k][1] = 0.0;
+    }
+
+    fftw_execute(invPlan); // inverse back to time domain
+
+    for (int i = 0; i < AppConfig::fftSize; ++i) {  // compute amplitude
+        hilbert_time[i][0] /= AppConfig::fftSize;
+        hilbert_time[i][1] /= AppConfig::fftSize;
+        amplitude[i] = std::sqrt(hilbert_time[i][0] * hilbert_time[i][0] +hilbert_time[i][1] * hilbert_time[i][1]);
+    }
+
+    for (int i = 0; i < AppConfig::fftSize; ++i) { // filter it outs
+        env_avg = 0.999 * env_avg + 0.001 * amplitude[i]; // smoothened estimate
+        double scale = (env_avg > 1e-12) ? env_avg : 1.0; // if large enough, use else, fall back to 1
+        buffer[i] /= scale; // divide by calculated scale
+    }
+}
+
 
 static void emit_peak(double freq) // refresh peak freq
 {
@@ -82,8 +141,7 @@ static void* fft_thread_func(void*)
         }
 
         if (peak_callback) {
-            double freq = (peakIndex *
-                           ((internalMode == FFTMode::LowBandwidth) ? 200000.0 : 80000000.0)) /AppConfig::fftSize;
+            double freq = (peakIndex * ((internalMode == FFTMode::LowBandwidth) ? 200000.0 : 80000000.0)) /AppConfig::fftSize;
             freq /= (internalMode == FFTMode::LowBandwidth) ? 1000.0 : 1e6;
             peak_callback(freq);
         }
@@ -111,6 +169,10 @@ static int transfer_callback(uint16_t* data, int ndata, int, void*)
         current_buffer[buffer_index++] = static_cast<double>(data[i]);
 
         if (buffer_index >= AppConfig::fftSize) {
+
+            if (AppConfig::envelopeFilterEnabled)
+                envelope_filter(current_buffer);
+
             int next_tail = (queue_tail + 1) % NUM_BUFFERS;
             if (next_tail == queue_head) {
                 buffer_index = AppConfig::fftSize - AppConfig::fftHopSize;
@@ -154,6 +216,7 @@ FFTProcess::~FFTProcess()
     workerThread.quit();
     workerThread.wait();
     // NOTE: You could use pthread_cancel on threads if graceful stop is needed
+
 }
 
 void FFTProcess::start()
