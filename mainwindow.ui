@@ -26,70 +26,176 @@
        </property>
        <widget class="QFrame" name="FFT_frame">
         <layout class="QGridLayout" name="gridLayoutFFT">
-         <item row="1" column="0">
-          <widget class="QToolButton" name="fftMinusX">
-           <property name="text">
-            <string>-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QToolButton" name="fftPlusY">
-           <property name="text">
-            <string>+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QToolButton" name="fftMinusY">
-           <property name="text">
-            <string>-</string>
-           </property>
-          </widget>
-         </item>
+         <property name="horizontalSpacing">
+          <number>2</number>
+         </property>
+         <property name="verticalSpacing">
+          <number>2</number>
+         </property>
          <item row="1" column="1">
           <widget class="QwtPlot" name="FFT_plot" native="true"/>
          </item>
-         <item row="1" column="2">
-          <widget class="QToolButton" name="fftPlusX">
-           <property name="text">
-            <string>+</string>
-           </property>
+         <item row="1" column="0">
+          <widget class="QWidget" name="fftYAxisContainer">
+           <layout class="QVBoxLayout" name="fftYLayout">
+            <property name="spacing">
+             <number>1</number>
+            </property>
+            <property name="contentsMargins">
+             <left>0</left>
+             <top>0</top>
+             <right>0</right>
+             <bottom>0</bottom>
+            </property>
+            <item>
+             <widget class="QToolButton" name="fftPlusY">
+              <property name="text">
+               <string>+</string>
+              </property>
+             </widget>
+            </item>
+            <item alignment="Qt::AlignHCenter">
+             <widget class="QLabel" name="fftYTitle">
+              <property name="text">
+               <string>Log Magnitude</string>
+              </property>
+              <property name="rotationAngle">
+               <number>270</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="fftMinusY">
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QWidget" name="fftXAxisContainer">
+           <layout class="QHBoxLayout" name="fftXLayout">
+            <property name="spacing">
+             <number>3</number>
+            </property>
+            <property name="contentsMargins">
+             <left>0</left>
+             <top>0</top>
+             <right>0</right>
+             <bottom>0</bottom>
+            </property>
+            <item>
+             <widget class="QToolButton" name="fftMinusX">
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+            <item alignment="Qt::AlignVCenter">
+             <widget class="QLabel" name="fftXTitle">
+              <property name="text">
+               <string>Frequency</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="fftPlusX">
+              <property name="text">
+               <string>+</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
         </layout>
        </widget>
        <widget class="QFrame" name="Time_frame">
         <layout class="QGridLayout" name="gridLayoutTime">
+         <property name="horizontalSpacing">
+          <number>2</number>
+         </property>
+         <property name="verticalSpacing">
+          <number>2</number>
+         </property>
          <item row="1" column="1">
           <widget class="QwtPlot" name="Time_plot" native="true"/>
          </item>
-         <item row="0" column="1">
-          <widget class="QToolButton" name="timePlusY">
-           <property name="text">
-            <string>+</string>
-           </property>
+         <item row="1" column="0">
+          <widget class="QWidget" name="timeYAxisContainer">
+           <layout class="QVBoxLayout" name="timeYLayout">
+            <property name="spacing">
+             <number>1</number>
+            </property>
+            <property name="contentsMargins">
+             <left>0</left>
+             <top>0</top>
+             <right>0</right>
+             <bottom>0</bottom>
+            </property>
+            <item>
+             <widget class="QToolButton" name="timePlusY">
+              <property name="text">
+               <string>+</string>
+              </property>
+             </widget>
+            </item>
+            <item alignment="Qt::AlignHCenter">
+             <widget class="QLabel" name="timeYTitle">
+              <property name="text">
+               <string>Power (µW)</string>
+              </property>
+              <property name="rotationAngle">
+               <number>270</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="timeMinusY">
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QToolButton" name="timeMinusY">
-           <property name="text">
-            <string>-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QToolButton" name="timeMinusX">
-           <property name="text">
-            <string>-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QToolButton" name="timePlusX">
-           <property name="text">
-            <string>+</string>
-           </property>
+          <widget class="QWidget" name="timeXAxisContainer">
+           <layout class="QHBoxLayout" name="timeXLayout">
+            <property name="spacing">
+             <number>3</number>
+            </property>
+            <property name="contentsMargins">
+             <left>0</left>
+             <top>0</top>
+             <right>0</right>
+             <bottom>0</bottom>
+            </property>
+            <item>
+             <widget class="QToolButton" name="timeMinusX">
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+            <item alignment="Qt::AlignVCenter">
+             <widget class="QLabel" name="timeXTitle">
+              <property name="text">
+               <string>Time (µs)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="timePlusX">
+              <property name="text">
+               <string>+</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
         </layout>
