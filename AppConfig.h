@@ -6,8 +6,11 @@
 
 struct AppConfig {
     static inline double sampleRate   = 80e6;
-    static inline double timeWindowSeconds  = 100e-6;
-    static inline int maxPointsToPlot  = 10000;
+
+    static inline double timeWindowSeconds  = 100e-6;// semi adjustable
+
+    static inline int maxPointsToPlot  = 10000; // reconsider this number
+
     static inline int plotRefreshRateMs  = 5; // lower the better tbh, but theres better ways to improve responsiveness
 
     static inline int fftSize = 19683; // look into optimization ( bluestines, and primes)
@@ -16,12 +19,12 @@ struct AppConfig {
 
     static inline int fftBins = fftSize / 2 + 1;
 
-    static inline constexpr double fftOverlapFraction = 0.5;
-    static inline int fftHopSize = static_cast<int>(fftSize * (1.0 - fftOverlapFraction));
+    static inline constexpr double fftOverlapFraction = 0.5; // overlapping fft windows, gpts idea ( starts when 50% buffer is full)
+    static inline int fftHopSize = static_cast<int>(fftSize * (1.0 - fftOverlapFraction)); // speeds up fft in small bandwidth
 
     static constexpr double epsilon = 1e-12;
 
-    // signal val to uW conversion
+    // signal val to uW conversion - double check this conversion
     static inline double adcOffset = 49555.0;
     static inline double adcToMicroWatts   = 0.0147;
 };

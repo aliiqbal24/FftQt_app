@@ -12,11 +12,7 @@
 
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-    , fft(new FFTProcess())
-    , time(new TimeDProcess())
-    , plotManager(nullptr)
+    : QMainWindow(parent), ui(new Ui::MainWindow), fft(new FFTProcess()), time(new TimeDProcess()), plotManager(nullptr)
 {
     ui->setupUi(this);
 
@@ -129,8 +125,8 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
-    delete fft;           // safe since no parent
-    delete time;          // safe since no parent
+    delete fft;     // safe since no parent
+    delete time;     // safe since no parent
     delete plotManager;
     delete ui;
 }

@@ -26,7 +26,7 @@ void Features::switchMode(FFTMode &mode) { // mode switch, adjust Psuedo Sample 
     else
         mode = FFTMode::FullBandwidth;
 
-    AppConfig::sampleRate = (mode == FFTMode::FullBandwidth) ? 80e6 : 200000;
+    AppConfig::sampleRate = (mode == FFTMode::FullBandwidth) ? 80e6 : 200000 ;
 
     qDebug() << "[Features] Mode switched to:"<< (mode == FFTMode::FullBandwidth ? "FullBandwidth" : "LowBandwidth");
 }
@@ -39,7 +39,7 @@ void Features::saveFFTPlot(const QString &fileName,const double *fftBuffer, doub
         return;
     }
 
-    QTextStream out(&file);
+    QTextStream out(&file); // csv headings
 
     if (sampleRate > 1e6)
         out << "Frequency (MHz),Log Magnitude\n";
@@ -50,7 +50,7 @@ void Features::saveFFTPlot(const QString &fileName,const double *fftBuffer, doub
     const double eps = AppConfig::epsilon;
     const int fftSize = AppConfig::fftSize;
 
-    for (int i = 0; i < bins; ++i) {
+    for (int i = 0; i < bins; ++i) {   // right to file
         double freq = i * (sampleRate / fftSize);
         freq /= (sampleRate > 1e6) ? 1e6 : 1e3;
 
@@ -62,8 +62,7 @@ void Features::saveFFTPlot(const QString &fileName,const double *fftBuffer, doub
     qDebug() << "[Features] FFT plot saved to" << fileName;
 }
 
-void Features::saveTimePlot(const QString &fileName,const std::vector<uint16_t> &buffer,
-double sampleRate, double timeWindowSeconds)
+void Features::saveTimePlot(const QString &fileName,const std::vector<uint16_t> &buffer, double sampleRate, double timeWindowSeconds)
 {
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -88,7 +87,7 @@ double sampleRate, double timeWindowSeconds)
     qDebug() << "[Features] Time-domain plot saved to" << fileName;
 }
 
-void Features::promptUserToSavePlot(QWidget *parent,const double *fftBuffer,const std::vector<uint16_t> &timeBuffer) // ask user what plot, maybe do this before?
+void Features::promptUserToSavePlot(QWidget *parent,const double *fftBuffer,const std::vector<uint16_t> &timeBuffer) // ask user what plot, maybe do this before filenaming?
 {
     QSettings settings("Ultracoustics", "RealtimePlotApp");
     QString lastDir = settings.value("lastSavePath", QDir::homePath()).toString();

@@ -19,7 +19,8 @@
 
 using PeakFrequencyCallback = void(*)(double);
 
-// Shared state
+// Shared initialization
+
 static std::atomic<int> fft_data_ready{0};
 static std::vector<double> fft_magnitude_buffer(AppConfig::fftBins);
 static std::vector<std::vector<double>> fft_buffers(NUM_BUFFERS, std::vector<double>(AppConfig::fftSize));
@@ -37,7 +38,7 @@ static FFTMode internalMode = FFTMode::FullBandwidth;
 static FFTProcess* fft_instance = nullptr;
 static PeakFrequencyCallback peak_callback = nullptr;
 
-static void emit_peak(double freq)
+static void emit_peak(double freq) // refresh peak freq
 {
     if (!fft_instance) return;
     QMetaObject::invokeMethod(qApp, [freq]() {
@@ -48,13 +49,14 @@ static void emit_peak(double freq)
 
 static void* fft_thread_func(void*)
 {
-    auto* fft_output = new fftw_complex[AppConfig::fftBins];
+    fftw_complex* fft_output = new fftw_complex[AppConfig::fftBins];
     fftw_plan plan = fftw_plan_dft_r2c_1d(AppConfig::fftSize, nullptr, fft_output, FFTW_ESTIMATE);
 
     while (true) {
         pthread_mutex_lock(&queue_mutex);
         while (queue_head == queue_tail)
             pthread_cond_wait(&queue_not_empty, &queue_mutex);
+
         double* fft_input = fft_queue[queue_head];
         queue_head = (queue_head + 1) % NUM_BUFFERS;
         pthread_mutex_unlock(&queue_mutex);

@@ -16,10 +16,12 @@
 #include <qwt_plot_panner.h>
 #include <qwt_plot_magnifier.h>
 #include <qwt_scale_widget.h>
+#include <qwt_scale_map.h>
 
-/* ------------------------------------------------------------------ *
- *                       C O N S T R U C T O R                        *
- * ------------------------------------------------------------------ */
+
+
+// Constructor
+
 PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     : QObject(parent)
     , fftPlot_(fftPlot)
@@ -113,11 +115,41 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
 static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
 {
     auto d = p->axisScaleDiv(axis);
-    double c = (d.lowerBound() + d.upperBound()) / 2.0;
-    double h = (d.upperBound() - d.lowerBound()) * factorIn;
-    p->setAxisScale(axis, c - h/2, c + h/2);
+    double currentMin = d.lowerBound();
+    double currentMax = d.upperBound();
+    double center = (currentMin + currentMax) / 2.0;
+    double newHalfRange = (currentMax - currentMin) * factorIn / 2.0;
+
+    // Compute new proposed bounds
+    double newMin = center - newHalfRange;
+    double newMax = center + newHalfRange;
+
+    // Get full plot bounds from curve data
+    const QwtPlotCurve* curve = nullptr;
+    for (const auto *item : p->itemList(QwtPlotItem::Rtti_PlotCurve)) {
+        const auto* c = dynamic_cast<const QwtPlotCurve*>(item);
+        if (c && c->isVisible()) {
+            curve = c;
+            break;
+        }
+    }
+
+    if (curve) {
+        const QwtScaleMap& map = p->canvasMap(axis);
+        const double dataMin = curve->boundingRect().topLeft().x();
+        const double dataMax = curve->boundingRect().bottomRight().x();
+
+        // Clamp zoom-out so we never go beyond data bounds
+        if ((newMax - newMin) >= (dataMax - dataMin)) {
+            newMin = dataMin;
+            newMax = dataMax;
+        }
+    }
+
+    p->setAxisScale(axis, newMin, newMax);
     p->replot();
 }
+
 
 
 void PlotManager::acquireZoomButtons()
@@ -138,7 +170,7 @@ void PlotManager::acquireZoomButtons()
     QList<QToolButton*> all { fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_,
                              timePlusX_,timeMinusX_,timePlusY_,timeMinusY_ };
 
-    for (auto *b : all)
+    for (auto *b : all) // connect buttons
     {
         if (!b) { qWarning("[PlotManager] Zoom button missing in .ui !"); continue; }
         b->setFixedSize(20,20);
@@ -146,15 +178,15 @@ void PlotManager::acquireZoomButtons()
         b->raise();
     }
 
-    if (fftPlusX_)  connect(fftPlusX_,  &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::xBottom, 0.5); });
-    if (fftMinusX_) connect(fftMinusX_, &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::xBottom, 1.6); });
-    if (fftPlusY_)  connect(fftPlusY_,  &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::yLeft,  0.5); });
-    if (fftMinusY_) connect(fftMinusY_, &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::yLeft,  1.6); });
+    if (fftPlusX_)  connect(fftPlusX_,  &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::xBottom, 0.75); });
+    if (fftMinusX_) connect(fftMinusX_, &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::xBottom, 1.25); });
+    if (fftPlusY_)  connect(fftPlusY_,  &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::yLeft,  0.75); });
+    if (fftMinusY_) connect(fftMinusY_, &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::yLeft,  1.25); });
 
-    if (timePlusX_)  connect(timePlusX_,  &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::xBottom, 0.5); });
-    if (timeMinusX_) connect(timeMinusX_, &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::xBottom, 1.6); });
-    if (timePlusY_)  connect(timePlusY_,  &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::yLeft,  0.5); });
-    if (timeMinusY_) connect(timeMinusY_, &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::yLeft,  1.6); });
+    if (timePlusX_)  connect(timePlusX_,  &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::xBottom, 0.75); });
+    if (timeMinusX_) connect(timeMinusX_, &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::xBottom, 1.25); });
+    if (timePlusY_)  connect(timePlusY_,  &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::yLeft,  0.75); });
+    if (timeMinusY_) connect(timeMinusY_, &QToolButton::clicked, this, [this]{ zoomAxis(timePlot_, QwtPlot::yLeft,  1.25); });
 }
 
 
@@ -176,8 +208,7 @@ void PlotManager::updateFFT(const double *buf, double Fs)
     fftPlot_->replot();
 }
 
-void PlotManager::updateTime(const std::vector<uint16_t>& buf,
-                             double Fs, double winSec, int maxPts)
+void PlotManager::updateTime(const std::vector<uint16_t>& buf, double Fs, double winSec, int maxPts)
 {
     const int N = static_cast<int>(buf.size());
     if (N==0) return;

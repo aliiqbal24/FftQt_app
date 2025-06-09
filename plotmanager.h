@@ -19,14 +19,13 @@ public:
     explicit PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent = nullptr);
 
     void updateFFT(const double *fftBuffer, double sampleRate);
-    void updateTime(const std::vector<uint16_t> &timeBuffer,
-                    double sampleRate, double timeWindowSeconds,
-                    int maxPointsToPlot);
-    void updatePlot(FFTProcess *fft, TimeDProcess *time,
-                    bool isPaused, FFTMode mode);
+
+    void updateTime(const std::vector<uint16_t> &timeBuffer, double sampleRate, double timeWindowSeconds, int maxPointsToPlot);
+
+    void updatePlot(FFTProcess *fft, TimeDProcess *time, bool isPaused, FFTMode mode);
 
 protected:
-    // no event filter needed once buttons are in a layout
+    // no event filter needed once buttons are in a layout (place holder)
 
 private:
     // fetch + wire-up the buttons defined in the .ui file
