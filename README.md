@@ -11,6 +11,7 @@ A real-time signal visualization app built with **Qt 6**, **Qwt**, and powered b
 - 🎚️ Adjustable modes: Full bandwidth / Low bandwidth
 - ⏸️ **Pause/play** real-time updates
 - 💾 Save plots as `.txt`, `.csv`
+- ⚡ Optional Hilbert-based envelope normalization of FFT windows (per-sample)
 - 🧱 Clean Qt UI with responsive layout
 
 ---
