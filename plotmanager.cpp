@@ -16,6 +16,76 @@
 #include <qwt_plot_panner.h>
 #include <qwt_plot_magnifier.h>
 
+class ClampedPanner : public QwtPlotPanner {
+public:
+    ClampedPanner(QWidget *canvas, QwtPlot *plot, double minX, double maxX)
+        : QwtPlotPanner(canvas), plot_(plot), minX_(minX), maxX_(maxX) {}
+
+protected:
+    void moveCanvas(int dx, int dy) override {
+        QwtPlotPanner::moveCanvas(dx, dy);
+        auto div = plot_->axisScaleDiv(QwtPlot::xBottom);
+        double min = div.lowerBound();
+        double max = div.upperBound();
+        double range = max - min;
+
+        if (min < minX_) {
+            min = minX_;
+            max = min + range;
+        }
+        if (max > maxX_) {
+            max = maxX_;
+            min = max - range;
+        }
+
+        plot_->setAxisScale(QwtPlot::xBottom, min, max);
+        plot_->replot();
+    }
+
+private:
+    QwtPlot *plot_;
+    double minX_;
+    double maxX_;
+};
+
+class ClampedMagnifier : public QwtPlotMagnifier {
+public:
+    ClampedMagnifier(QWidget *canvas, QwtPlot *plot, double minX, double maxX)
+        : QwtPlotMagnifier(canvas), plot_(plot), minX_(minX), maxX_(maxX) {}
+
+protected:
+    void rescale(double factor) override {
+        QwtPlotMagnifier::rescale(factor);
+        auto div = plot_->axisScaleDiv(QwtPlot::xBottom);
+        double min = div.lowerBound();
+        double max = div.upperBound();
+        double range = max - min;
+        double fullRange = maxX_ - minX_;
+
+        if (range > fullRange) {
+            min = minX_;
+            max = maxX_;
+        } else {
+            if (min < minX_) {
+                min = minX_;
+                max = min + range;
+            }
+            if (max > maxX_) {
+                max = maxX_;
+                min = max - range;
+            }
+        }
+
+        plot_->setAxisScale(QwtPlot::xBottom, min, max);
+        plot_->replot();
+    }
+
+private:
+    QwtPlot *plot_;
+    double minX_;
+    double maxX_;
+};
+
 
 PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     : QObject(parent), fftPlot_(fftPlot), timePlot_(timePlot)
@@ -41,7 +111,11 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     fftPlot_->setAxisTitle(QwtPlot::yLeft, QwtText("Log Magnitude"));
     fftPlot_->setAxisMaxMajor(QwtPlot::yLeft, 6);
     fftPlot_->setAxisScale(QwtPlot::yLeft, 0.0, 8.0);
-    fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0, (AppConfig::sampleRate / 2.0) / (AppConfig::sampleRate > 1e6 ? 1e6 : 1e3));
+    fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0,
+                           (AppConfig::sampleRate / 2.0) /
+                               (AppConfig::sampleRate > 1e6 ? 1e6 : 1e3));
+    fftXMin_ = fftPlot_->axisScaleDiv(QwtPlot::xBottom).lowerBound();
+    fftXMax_ = fftPlot_->axisScaleDiv(QwtPlot::xBottom).upperBound();
 
     for (int axis = 0; axis < QwtPlot::axisCnt; ++axis) {
         if (auto *scaleWidget = fftPlot_->axisWidget(axis)) {
@@ -68,7 +142,10 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     timePlot_->setAxisTitle(QwtPlot::yLeft, QwtText("Signal Value"));
     timePlot_->setAxisMaxMajor(QwtPlot::yLeft, 4);
     timePlot_->setAxisScale(QwtPlot::yLeft, 0.0, 150.0);
-    timePlot_->setAxisScale(QwtPlot::xBottom, 0.0, AppConfig::timeWindowSeconds * 1e6);
+    timePlot_->setAxisScale(QwtPlot::xBottom, 0.0,
+                             AppConfig::timeWindowSeconds * 1e6);
+    timeXMin_ = timePlot_->axisScaleDiv(QwtPlot::xBottom).lowerBound();
+    timeXMax_ = timePlot_->axisScaleDiv(QwtPlot::xBottom).upperBound();
 
     for (int axis = 0; axis < QwtPlot::axisCnt; ++axis) {
         if (auto *scaleWidget = timePlot_->axisWidget(axis)) {
@@ -91,13 +168,13 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     timeCurve_->attach(timePlot_);
 
     // Interactive controls
-    auto *fftPanner = new QwtPlotPanner(fftPlot_->canvas());
+    auto *fftPanner = new ClampedPanner(fftPlot_->canvas(), fftPlot_, fftXMin_, fftXMax_);
     fftPanner->setMouseButton(Qt::LeftButton);
-    new QwtPlotMagnifier(fftPlot_->canvas());
+    new ClampedMagnifier(fftPlot_->canvas(), fftPlot_, fftXMin_, fftXMax_);
 
-    auto *timePanner = new QwtPlotPanner(timePlot_->canvas());
+    auto *timePanner = new ClampedPanner(timePlot_->canvas(), timePlot_, timeXMin_, timeXMax_);
     timePanner->setMouseButton(Qt::LeftButton);
-    new QwtPlotMagnifier(timePlot_->canvas());
+    new ClampedMagnifier(timePlot_->canvas(), timePlot_, timeXMin_, timeXMax_);
 
     // Zoom buttons
     createZoomButtons(fftPlot_, fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_);
