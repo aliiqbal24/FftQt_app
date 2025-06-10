@@ -95,12 +95,11 @@ static void envelope_filter(double* buffer)
     for (int i = 0; i < N; ++i) {  // compute amplitude
         hilbert_time[i][0] /= N;
         hilbert_time[i][1] /= N;
-        amplitude[i] = std::sqrt(hilbert_time[i][0] * hilbert_time[i][0] +
-                                 hilbert_time[i][1] * hilbert_time[i][1]);
+        amplitude[i] = std::sqrt(hilbert_time[i][0] * hilbert_time[i][0] + hilbert_time[i][1] * hilbert_time[i][1]);
     }
 
     for (int i = 0; i < N; ++i) { // filter it outs
-        env_avg = 0.999 * env_avg + 0.001 * amplitude[i]; // smoothened estimate
+        env_avg = 0.8 * env_avg + 0.1 * amplitude[i]; // smoothened estimate
         double scale = (env_avg > 1e-12) ? env_avg : 1.0; // if large enough, use else, fall back to 1
         buffer[i] /= scale; // divide by calculated scale
     }
