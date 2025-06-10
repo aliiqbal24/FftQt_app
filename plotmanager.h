@@ -56,6 +56,11 @@ private:
     QToolButton *timeMinusX_;
     QToolButton *timePlusY_;
     QToolButton *timeMinusY_;
+
+    double fftXMin_;
+    double fftXMax_;
+    double timeXMin_;
+    double timeXMax_;
 };
 
 #endif // PLOTMANAGER_H
