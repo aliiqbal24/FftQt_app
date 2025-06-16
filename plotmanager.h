@@ -1,6 +1,8 @@
-// PlotManager.h
+// PlotManager.h (Qwt-based implementation disabled)
 #ifndef PLOTMANAGER_H
 #define PLOTMANAGER_H
+
+#if 0
 
 #include <QObject>
 #include <QVector>
@@ -63,4 +65,5 @@ private:
     double timeXMax_;
 };
 
+#endif // 0
 #endif // PLOTMANAGER_H

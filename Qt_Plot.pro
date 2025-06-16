@@ -15,6 +15,9 @@ SOURCES += \
     fft_config.cpp \
     main.cpp \
     mainwindow.cpp \
+    GLPlotManager.cpp \
+    FFTGLWidget.cpp \
+    TimeGLWidget.cpp \
     plotmanager.cpp
 
 # === Header Files ===
@@ -24,10 +27,14 @@ HEADERS += \
     Features.h \
     TimeDProcess.h \
     mainwindow.h \
+    GLPlotManager.h \
+    FFTGLWidget.h \
+    TimeGLWidget.h \
     plotmanager.h
 
 # === UI Forms ===
 FORMS += \
+    OpenGLWindow.ui \
     mainwindow.ui
 
 # === Include Paths ===
@@ -35,14 +42,14 @@ INCLUDEPATH += \
     $$PWD \
     $$PWD/Plot_dependencies/libri-0.9.5/include \
     $$PWD/Plot_dependencies/mkl/latest/include \
-    $$PWD/Plot_dependencies/mkl/latest/include/fftw \
-    C:/Ultracoustics-ALI-Playground/qwt-6.3.0/src
+    $$PWD/Plot_dependencies/mkl/latest/include/fftw
+#    C:/Ultracoustics-ALI-Playground/qwt-6.3.0/src
 
 # === Link Libraries ===
 LIBS += \
     -L$$PWD/Plot_dependencies/libri-0.9.5/lib64 -lri \
     -L$$PWD/Plot_dependencies/mkl/latest/lib -lmkl_rt \
-    -LC:/Ultracoustics-ALI-Playground/qwt-6.3.0/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/lib -lqwt \
+#    -LC:/Ultracoustics-ALI-Playground/qwt-6.3.0/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/lib -lqwt \
     -lpthread -lm
 
 RESOURCES += \

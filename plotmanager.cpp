@@ -1,4 +1,5 @@
-// PlotManager.cpp
+// PlotManager.cpp (Qwt implementation disabled)
+#if 0
 #include "PlotManager.h"
 #include "AppConfig.h"
 #include "Features.h"
@@ -340,3 +341,4 @@ void PlotManager::zoomOutY()
     plot->setAxisScale(QwtPlot::yLeft, center - half, center + half);
     plot->replot();
 }
+#endif // 0

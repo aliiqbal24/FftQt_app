@@ -11,7 +11,8 @@ QT_END_NAMESPACE
 
 class FFTProcess;
 class TimeDProcess;
-class PlotManager;
+class PlotManager; // old Qwt plot manager (unused)
+class GLPlotManager;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -21,10 +22,11 @@ public:
     ~MainWindow();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::OpenGLWindow *ui;
     FFTProcess     *fft;
     TimeDProcess   *time;
-    PlotManager    *plotManager;
+    // PlotManager    *plotManager; // Qwt version
+    GLPlotManager  *plotManager;
     bool            isPaused = false;
     FFTMode         currentMode = FFTMode::FullBandwidth;
 };
