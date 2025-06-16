@@ -8,6 +8,7 @@
 #include <QPen>
 #include <QPalette>
 #include <QToolButton>
+#include <QGridLayout>
 #include <cmath>
 #include <algorithm>
 
@@ -170,13 +171,49 @@ void PlotManager::acquireZoomButtons()
     QList<QToolButton*> all { fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_,
                              timePlusX_,timeMinusX_,timePlusY_,timeMinusY_ };
 
-    for (auto *b : all) // connect buttons
+    for (auto *b : all)
     {
         if (!b) { qWarning("[PlotManager] Zoom button missing in .ui !"); continue; }
         b->setFixedSize(20,20);
         b->setStyleSheet("background:#808080; color:black; border:1px solid black;");
-        b->raise();
     }
+
+    QGridLayout *fftLayout  = qobject_cast<QGridLayout*>(fftCont->layout());
+    QGridLayout *timeLayout = qobject_cast<QGridLayout*>(timeCont->layout());
+
+    if (fftPlusX_)  { if (fftLayout) fftLayout->removeWidget(fftPlusX_);  fftPlusX_->setParent(fftPlot_); }
+    if (fftMinusX_) { if (fftLayout) fftLayout->removeWidget(fftMinusX_); fftMinusX_->setParent(fftPlot_); }
+    if (fftPlusY_)  { if (fftLayout) fftLayout->removeWidget(fftPlusY_);  fftPlusY_->setParent(fftPlot_); }
+    if (fftMinusY_) { if (fftLayout) fftLayout->removeWidget(fftMinusY_); fftMinusY_->setParent(fftPlot_); }
+
+    if (timePlusX_)  { if (timeLayout) timeLayout->removeWidget(timePlusX_);  timePlusX_->setParent(timePlot_); }
+    if (timeMinusX_) { if (timeLayout) timeLayout->removeWidget(timeMinusX_); timeMinusX_->setParent(timePlot_); }
+    if (timePlusY_)  { if (timeLayout) timeLayout->removeWidget(timePlusY_);  timePlusY_->setParent(timePlot_); }
+    if (timeMinusY_) { if (timeLayout) timeLayout->removeWidget(timeMinusY_); timeMinusY_->setParent(timePlot_); }
+
+    int margin = 5;
+    if (fftPlot_)
+    {
+        int xRight = fftPlot_->width() - margin - 20;
+        int yBottom = fftPlot_->height() - margin - 20;
+        if (fftPlusX_)  fftPlusX_->move(xRight, yBottom);
+        if (fftMinusX_) fftMinusX_->move(margin, yBottom);
+        if (fftPlusY_)  fftPlusY_->move(xRight, margin);
+        if (fftMinusY_) fftMinusY_->move(margin, margin);
+    }
+
+    if (timePlot_)
+    {
+        int xRight = timePlot_->width() - margin - 20;
+        int yBottom = timePlot_->height() - margin - 20;
+        if (timePlusX_)  timePlusX_->move(xRight, yBottom);
+        if (timeMinusX_) timeMinusX_->move(margin, yBottom);
+        if (timePlusY_)  timePlusY_->move(xRight, margin);
+        if (timeMinusY_) timeMinusY_->move(margin, margin);
+    }
+
+    for (auto *b : all)
+        if (b) b->raise();
 
     if (fftPlusX_)  connect(fftPlusX_,  &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::xBottom, 0.75); });
     if (fftMinusX_) connect(fftMinusX_, &QToolButton::clicked, this, [this]{ zoomAxis(fftPlot_,  QwtPlot::xBottom, 1.25); });
