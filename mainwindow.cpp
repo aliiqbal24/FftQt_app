@@ -1,9 +1,9 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "ui_OpenGLWindow.h"
 #include "AppConfig.h"
 #include "FFTProcess.h"
 #include "TimeDProcess.h"
-#include "PlotManager.h"
+#include "GLPlotManager.h"
 #include "Features.h"
 
 #include <QTimer>
@@ -13,7 +13,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    , ui(new Ui::OpenGLWindow)
     , fft(new FFTProcess())
     , time(new TimeDProcess())
     , plotManager(nullptr)
@@ -69,7 +69,8 @@ MainWindow::MainWindow(QWidget *parent)
     this->activateWindow();
 
     // Proper single initialization of plot manager
-    plotManager = new PlotManager(ui->FFT_plot, ui->Time_plot, this);
+    // plotManager = new PlotManager(ui->FFT_plot, ui->Time_plot, this);
+    plotManager = new GLPlotManager(ui->FFT_plot, ui->Time_plot, this);
 
     connect(ui->PausePlay, &QPushButton::clicked, this, [=]() {
         Features::togglePause(isPaused);
