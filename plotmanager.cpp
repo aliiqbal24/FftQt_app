@@ -82,7 +82,6 @@ private:
 };
 
 
-
 // Constructor
 PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     : QObject(parent)
@@ -163,6 +162,7 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
 
     // fix initial y-axis ranges so they don't autoscale when new data arrives
     // users can still zoom or pan to adjust the view
+
     fftPlot_->setAxisScale(QwtPlot::yLeft, 0.0, 8.0);      // log magnitude
     timePlot_->setAxisScale(QwtPlot::yLeft, 0.0, 150.0);   // power in uW
 
@@ -229,8 +229,7 @@ void PlotManager::acquireZoomButtons()
     timePlusY_  = timeCont->findChild<QToolButton*>("timePlusY");
     timeMinusY_ = timeCont->findChild<QToolButton*>("timeMinusY");
 
-    QList<QToolButton*> all { fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_,
-                             timePlusX_,timeMinusX_,timePlusY_,timeMinusY_ };
+    QList<QToolButton*> all { fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_, timePlusX_,timeMinusX_,timePlusY_,timeMinusY_ };
 
     for (auto *b : all)
     {
