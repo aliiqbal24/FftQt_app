@@ -24,6 +24,9 @@ public:
 
     void updatePlot(FFTProcess *fft, TimeDProcess *time, bool isPaused, FFTMode mode);
 
+    // reset plot axes when switching modes
+    void adjustViewForMode(FFTMode mode);
+
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 

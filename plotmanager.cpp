@@ -389,6 +389,22 @@ bool PlotManager::eventFilter(QObject *obj, QEvent *event)
     return QObject::eventFilter(obj, event);
 }
 
+void PlotManager::adjustViewForMode(FFTMode mode)
+{
+    if (!fftPlot_ || !timePlot_)
+        return;
+
+    double freqLimit = (mode == FFTMode::FullBandwidth) ? 40.0 : 0.1;
+    fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0, freqLimit);
+    fftPlot_->setAxisTitle(QwtPlot::xBottom,
+                           mode == FFTMode::FullBandwidth ? "Frequency (MHz)" : "Frequency (kHz)");
+    fftPlot_->replot();
+
+    double timeLimit = AppConfig::timeWindowSeconds * 1e6;
+    timePlot_->setAxisScale(QwtPlot::xBottom, 0.0, timeLimit);
+    timePlot_->replot();
+}
+
 
 
 /* Future improvements:
