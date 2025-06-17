@@ -201,6 +201,17 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     acquireZoomButtons();
 }
 
+void PlotManager::resetFFTView()
+{
+    if (!fftPlot_)
+        return;
+
+    double limit = getMaxXAxisLimit(fftPlot_);
+    fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0, limit);
+    fftPlot_->replot();
+}
+
+
 static inline void zoomAxis(QwtPlot *plot, int axis, double factorIn)
 {
     auto d = plot->axisScaleDiv(axis);

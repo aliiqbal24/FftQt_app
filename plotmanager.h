@@ -24,6 +24,9 @@ public:
 
     void updatePlot(FFTProcess *fft, TimeDProcess *time, bool isPaused, FFTMode mode);
 
+    // Reset FFT plot view to the full bandwidth for the current sample rate
+    void resetFFTView();
+
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 

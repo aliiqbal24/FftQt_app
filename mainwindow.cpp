@@ -79,6 +79,7 @@ MainWindow::MainWindow(QWidget *parent)
         Features::switchMode(currentMode);
         time->resize(static_cast<int>(AppConfig::sampleRate * AppConfig::timeWindowSeconds + 1));
         fft->setMode(currentMode);
+        plotManager->resetFFTView();
 
         qDebug() << "[MainWindow] Mode change: Starting FFT...";
         fft->start();
