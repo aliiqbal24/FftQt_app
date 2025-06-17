@@ -73,8 +73,9 @@ static inline void clampAxisToCurve(QwtPlot *plot, int axis)
 // Panner that keeps the view within data bounds
 class BoundedPanner : public QwtPlotPanner {
 public:
-    explicit BoundedPanner(QwtPlot *plot)
-        : QwtPlotPanner(plot->canvas()), plot_(plot) {}
+    BoundedPanner(QwtPlot *plot, bool *panningFlag)
+        : QwtPlotPanner(plot->canvas()), plot_(plot), panningFlag_(panningFlag) {}
+
 protected:
     void moveCanvas(int dx, int dy) override {
         QwtPlotPanner::moveCanvas(dx, dy);
@@ -85,8 +86,22 @@ protected:
         plot_->setAxisScale(QwtPlot::xBottom, min, max);
         plot_->replot();
     }
+
+    void widgetMousePressEvent(QMouseEvent *e) override {
+        if (panningFlag_)
+            *panningFlag_ = true;
+        QwtPlotPanner::widgetMousePressEvent(e);
+    }
+
+    void widgetMouseReleaseEvent(QMouseEvent *e) override {
+        if (panningFlag_)
+            *panningFlag_ = false;
+        QwtPlotPanner::widgetMouseReleaseEvent(e);
+    }
+
 private:
     QwtPlot *plot_;
+    bool *panningFlag_;
 };
 
 // Magnifier that keeps the view within data bounds
@@ -193,9 +208,9 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     fftPlot_->setAxisScale(QwtPlot::yLeft, 0.0, 8.0);      // log magnitude
     timePlot_->setAxisScale(QwtPlot::yLeft, 0.0, 150.0);   // power in uW
 
-    new BoundedPanner(fftPlot_);
+    new BoundedPanner(fftPlot_, &fftPanning_);
     new BoundedMagnifier(fftPlot_);
-    new BoundedPanner(timePlot_);
+    new BoundedPanner(timePlot_, &timePanning_);
     new BoundedMagnifier(timePlot_);
 
     acquireZoomButtons();
@@ -316,7 +331,8 @@ void PlotManager::updateFFT(const double *buf, double Fs)
     fftCurve_->setSamples(x,y);
     fftPlot_->setAxisTitle(QwtPlot::xBottom,
                            Fs>1e6 ? "Frequency (MHz)" : "Frequency (kHz)");
-    clampAxisToCurve(fftPlot_, QwtPlot::xBottom);
+    if (!fftPanning_)
+        clampAxisToCurve(fftPlot_, QwtPlot::xBottom);
     fftPlot_->replot();
 }
 
@@ -339,7 +355,8 @@ void PlotManager::updateTime(const std::vector<uint16_t>& buf, double Fs, double
     }
     timeCurve_->setSamples(x,y);
     timePlot_->setAxisTitle(QwtPlot::yLeft, "Power (µW)");
-    clampAxisToCurve(timePlot_, QwtPlot::xBottom);
+    if (!timePanning_)
+        clampAxisToCurve(timePlot_, QwtPlot::xBottom);
     timePlot_->replot();
 }
 

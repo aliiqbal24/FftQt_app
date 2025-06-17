@@ -52,6 +52,10 @@ private:
     QToolButton *timeMinusX_{};
     QToolButton *timePlusY_{};
     QToolButton *timeMinusY_{};
+
+    // flags tracking whether the user is actively panning
+    bool fftPanning_ = false;
+    bool timePanning_ = false;
 };
 
 #endif // PLOTMANAGER_H
