@@ -176,39 +176,49 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
 
 static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
 {
+    // Current axis range
     auto d = p->axisScaleDiv(axis);
-    double currentMin = d.lowerBound();
-    double currentMax = d.upperBound();
-    double center = (currentMin + currentMax) / 2.0;
-    double newHalfRange = (currentMax - currentMin) * factorIn / 2.0;
+    double curMin = d.lowerBound();
+    double curMax = d.upperBound();
+    double width  = curMax - curMin;
+    if (width <= 0.0)
+        return;
 
-    // Compute new proposed bounds
-    double newMin = center - newHalfRange;
-    double newMax = center + newHalfRange;
+    // Target range after applying zoom factor
+    double center   = (curMin + curMax) / 2.0;
+    double newWidth = width * factorIn;
+    double newMin   = center - newWidth / 2.0;
+    double newMax   = center + newWidth / 2.0;
 
-    // Get full plot bounds from curve data
-    const QwtPlotCurve* curve = nullptr;
+    // Determine data bounds for the requested axis
+    const QwtPlotCurve *curve = nullptr;
     for (const auto *item : p->itemList(QwtPlotItem::Rtti_PlotCurve)) {
-        const auto* c = dynamic_cast<const QwtPlotCurve*>(item);
-        if (c && c->isVisible()) {
+        if (const auto *c = dynamic_cast<const QwtPlotCurve *>(item); c && c->isVisible()) {
             curve = c;
             break;
         }
     }
 
     if (curve) {
-        const double dataMin = curve->boundingRect().topLeft().x();
-        const double dataMax = curve->boundingRect().bottomRight().x();
+        QRectF rect = curve->boundingRect();
+        const double dataMin = (axis == QwtPlot::xBottom) ? rect.left()  : rect.top();
+        const double dataMax = (axis == QwtPlot::xBottom) ? rect.right() : rect.bottom();
 
-        // Clamp zoom-out so we never go beyond data bounds
-        if ((newMax - newMin) >= (dataMax - dataMin)) {
+        const double dataWidth = dataMax - dataMin;
+        // Prevent zooming out beyond the full data range
+        if (newWidth >= dataWidth) {
             newMin = dataMin;
             newMax = dataMax;
+        } else {
+            // Clamp min/max to stay inside bounds while preserving newWidth
+            if (newMin < dataMin) { newMin = dataMin; newMax = newMin + newWidth; }
+            if (newMax > dataMax) { newMax = dataMax; newMin = newMax - newWidth; }
         }
     }
 
     p->setAxisScale(axis, newMin, newMax);
-    clampAxisToCurve(p, axis);
+    if (axis == QwtPlot::xBottom)
+        clampAxisToCurve(p, axis); // keep x-axis strictly within data range
     p->replot();
 }
 
