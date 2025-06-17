@@ -9,6 +9,7 @@
 #include <QPalette>
 #include <QToolButton>
 #include <QGridLayout>
+#include <QEvent>
 #include <cmath>
 #include <algorithm>
 
@@ -252,26 +253,15 @@ void PlotManager::acquireZoomButtons()
     if (timePlusY_)  { if (timeLayout) timeLayout->removeWidget(timePlusY_);  timePlusY_->setParent(timePlot_); }
     if (timeMinusY_) { if (timeLayout) timeLayout->removeWidget(timeMinusY_); timeMinusY_->setParent(timePlot_); }
 
-    int margin = 5;
     if (fftPlot_)
-    {
-        int xRight = fftPlot_->width() - margin - 20;
-        int yBottom = fftPlot_->height() - margin - 20;
-        if (fftPlusX_)  fftPlusX_->move(xRight, yBottom);
-        if (fftMinusX_) fftMinusX_->move(margin, yBottom);
-        if (fftPlusY_)  fftPlusY_->move(xRight, margin);
-        if (fftMinusY_) fftMinusY_->move(margin, margin);
-    }
-
+        positionButtons(fftPlot_, fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_);
     if (timePlot_)
-    {
-        int xRight = timePlot_->width() - margin - 20;
-        int yBottom = timePlot_->height() - margin - 20;
-        if (timePlusX_)  timePlusX_->move(xRight, yBottom);
-        if (timeMinusX_) timeMinusX_->move(margin, yBottom);
-        if (timePlusY_)  timePlusY_->move(xRight, margin);
-        if (timeMinusY_) timeMinusY_->move(margin, margin);
-    }
+        positionButtons(timePlot_, timePlusX_, timeMinusX_, timePlusY_, timeMinusY_);
+
+    if (fftPlot_)
+        fftPlot_->installEventFilter(this);
+    if (timePlot_)
+        timePlot_->installEventFilter(this);
 
     for (auto *b : all)
         if (b) b->raise();
@@ -345,6 +335,36 @@ void PlotManager::updatePlot(FFTProcess *fft, TimeDProcess *time, bool paused, F
         time->getBuffer(tb.data(), n);
         updateTime(tb, AppConfig::sampleRate, AppConfig::timeWindowSeconds, AppConfig::maxPointsToPlot);
     }
+}
+
+void PlotManager::positionButtons(QwtPlot *plot,
+                                  QToolButton *plusX, QToolButton *minusX,
+                                  QToolButton *plusY, QToolButton *minusY)
+{
+    if (!plot)
+        return;
+
+    int margin = 5;
+    int size = 20;
+    int xRight = plot->width() - margin - size;
+    int yBottom = plot->height() - margin - size;
+
+    if (plusX)  plusX->move(xRight, yBottom);
+    if (minusX) minusX->move(margin, yBottom);
+    if (plusY)  plusY->move(xRight, margin);
+    if (minusY) minusY->move(margin, margin);
+}
+
+bool PlotManager::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Resize)
+    {
+        if (obj == fftPlot_)
+            positionButtons(fftPlot_, fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_);
+        else if (obj == timePlot_)
+            positionButtons(timePlot_, timePlusX_, timeMinusX_, timePlusY_, timeMinusY_);
+    }
+    return QObject::eventFilter(obj, event);
 }
 
 
