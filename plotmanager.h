@@ -25,11 +25,14 @@ public:
     void updatePlot(FFTProcess *fft, TimeDProcess *time, bool isPaused, FFTMode mode);
 
 protected:
-    // no event filter needed once buttons are in a layout (place holder)
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     // fetch + wire-up the buttons defined in the .ui file
     void acquireZoomButtons();
+
+    void positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton *minusX,
+                         QToolButton *plusY, QToolButton *minusY);
 
     // plots & curves
     QwtPlot        *fftPlot_;
@@ -49,4 +52,3 @@ private:
 };
 
 #endif // PLOTMANAGER_H
-
