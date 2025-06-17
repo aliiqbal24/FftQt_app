@@ -19,6 +19,8 @@
 #include <qwt_scale_widget.h>
 #include <qwt_scale_map.h>
 
+
+
 // Determine maximum x-axis limit based on plot type
 static double getMaxXAxisLimit(QwtPlot *plot)
 {
@@ -115,7 +117,7 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     , fftPlot_(fftPlot)
     , timePlot_(timePlot)
 {
-    QColor lightGray(183, 182, 191);
+    QColor lightGray(200, 200, 204);
     QColor backgroundColor(13, 13, 13);
     QColor neonPink(255, 112, 198);
 
@@ -236,8 +238,6 @@ static inline void zoomAxis(QwtPlot *plot, int axis, double factorIn)
     plot->setAxisScale(axis, newMin, newMax);
     plot->replot();
 }
-
-
 
 void PlotManager::acquireZoomButtons()
 {
