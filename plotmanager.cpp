@@ -18,7 +18,7 @@
 #include <qwt_plot_magnifier.h>
 #include <qwt_scale_widget.h>
 
-// Helper to keep plot x-axis within curve bounds
+// Helper to keep the selected plot axis within the curve bounds
 static inline void clampAxisToCurve(QwtPlot *plot, int axis)
 {
     const QwtPlotCurve *curve = nullptr;
@@ -30,8 +30,15 @@ static inline void clampAxisToCurve(QwtPlot *plot, int axis)
     if (!curve)
         return;
 
-    const double dataMin = curve->boundingRect().topLeft().x();
-    const double dataMax = curve->boundingRect().bottomRight().x();
+    double dataMin = 0.0;
+    double dataMax = 0.0;
+    if (axis == QwtPlot::yLeft || axis == QwtPlot::yRight) {
+        dataMin = curve->boundingRect().topLeft().y();
+        dataMax = curve->boundingRect().bottomRight().y();
+    } else {
+        dataMin = curve->boundingRect().topLeft().x();
+        dataMax = curve->boundingRect().bottomRight().x();
+    }
     if (dataMax <= dataMin)
         return;
 
@@ -197,8 +204,15 @@ static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
     }
 
     if (curve) {
-        const double dataMin = curve->boundingRect().topLeft().x();
-        const double dataMax = curve->boundingRect().bottomRight().x();
+        double dataMin = 0.0;
+        double dataMax = 0.0;
+        if (axis == QwtPlot::yLeft || axis == QwtPlot::yRight) {
+            dataMin = curve->boundingRect().topLeft().y();
+            dataMax = curve->boundingRect().bottomRight().y();
+        } else {
+            dataMin = curve->boundingRect().topLeft().x();
+            dataMax = curve->boundingRect().bottomRight().x();
+        }
 
         // Clamp zoom-out so we never go beyond data bounds
         if ((newMax - newMin) >= (dataMax - dataMin)) {
