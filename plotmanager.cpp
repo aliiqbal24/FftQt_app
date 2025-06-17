@@ -17,7 +17,69 @@
 #include <qwt_plot_panner.h>
 #include <qwt_plot_magnifier.h>
 #include <qwt_scale_widget.h>
-#include <qwt_scale_map.h>
+
+// Helper to keep plot x-axis within curve bounds
+static inline void clampAxisToCurve(QwtPlot *plot, int axis)
+{
+    const QwtPlotCurve *curve = nullptr;
+    for (const auto *item : plot->itemList(QwtPlotItem::Rtti_PlotCurve)) {
+        const auto *c = dynamic_cast<const QwtPlotCurve *>(item);
+        if (c && c->isVisible()) { curve = c; break; }
+    }
+
+    if (!curve)
+        return;
+
+    const double dataMin = curve->boundingRect().topLeft().x();
+    const double dataMax = curve->boundingRect().bottomRight().x();
+    if (dataMax <= dataMin)
+        return;
+
+    auto d = plot->axisScaleDiv(axis);
+    double lower = d.lowerBound();
+    double upper = d.upperBound();
+    double width = upper - lower;
+
+    if (width > (dataMax - dataMin)) {
+        lower = dataMin;
+        upper = dataMax;
+    } else {
+        if (lower < dataMin) { lower = dataMin; upper = lower + width; }
+        if (upper > dataMax) { upper = dataMax; lower = upper - width; }
+    }
+
+    plot->setAxisScale(axis, lower, upper);
+}
+
+// Panner that keeps the view within data bounds
+class BoundedPanner : public QwtPlotPanner {
+public:
+    explicit BoundedPanner(QwtPlot *plot)
+        : QwtPlotPanner(plot->canvas()), plot_(plot) {}
+protected:
+    void moveCanvas(int dx, int dy) override {
+        QwtPlotPanner::moveCanvas(dx, dy);
+        clampAxisToCurve(plot_, QwtPlot::xBottom);
+        plot_->replot();
+    }
+private:
+    QwtPlot *plot_;
+};
+
+// Magnifier that keeps the view within data bounds
+class BoundedMagnifier : public QwtPlotMagnifier {
+public:
+    explicit BoundedMagnifier(QwtPlot *plot)
+        : QwtPlotMagnifier(plot->canvas()), plot_(plot) {}
+protected:
+    void rescale(double factor) override {
+        QwtPlotMagnifier::rescale(factor);
+        clampAxisToCurve(plot_, QwtPlot::xBottom);
+        plot_->replot();
+    }
+private:
+    QwtPlot *plot_;
+};
 
 
 
@@ -105,10 +167,10 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     fftPlot_->setAxisScale(QwtPlot::yLeft, 0.0, 8.0);      // log magnitude
     timePlot_->setAxisScale(QwtPlot::yLeft, 0.0, 150.0);   // power in uW
 
-    new QwtPlotPanner(fftPlot_->canvas());
-    new QwtPlotMagnifier(fftPlot_->canvas());
-    new QwtPlotPanner(timePlot_->canvas());
-    new QwtPlotMagnifier(timePlot_->canvas());
+    new BoundedPanner(fftPlot_);
+    new BoundedMagnifier(fftPlot_);
+    new BoundedPanner(timePlot_);
+    new BoundedMagnifier(timePlot_);
 
     acquireZoomButtons();
 }
@@ -136,7 +198,6 @@ static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
     }
 
     if (curve) {
-        const QwtScaleMap& map = p->canvasMap(axis);
         const double dataMin = curve->boundingRect().topLeft().x();
         const double dataMax = curve->boundingRect().bottomRight().x();
 
@@ -148,6 +209,7 @@ static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
     }
 
     p->setAxisScale(axis, newMin, newMax);
+    clampAxisToCurve(p, axis);
     p->replot();
 }
 
@@ -242,6 +304,7 @@ void PlotManager::updateFFT(const double *buf, double Fs)
     fftCurve_->setSamples(x,y);
     fftPlot_->setAxisTitle(QwtPlot::xBottom,
                            Fs>1e6 ? "Frequency (MHz)" : "Frequency (kHz)");
+    clampAxisToCurve(fftPlot_, QwtPlot::xBottom);
     fftPlot_->replot();
 }
 
@@ -264,6 +327,7 @@ void PlotManager::updateTime(const std::vector<uint16_t>& buf, double Fs, double
     }
     timeCurve_->setSamples(x,y);
     timePlot_->setAxisTitle(QwtPlot::yLeft, "Power (µW)");
+    clampAxisToCurve(timePlot_, QwtPlot::xBottom);
     timePlot_->replot();
 }
 
