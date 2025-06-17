@@ -17,8 +17,19 @@
 #include <qwt_plot_panner.h>
 #include <qwt_plot_magnifier.h>
 #include <qwt_scale_widget.h>
+#include <qwt_scale_map.h>
 
-// Helper to keep plot x-axis within curve bounds
+// Determine maximum x-axis limit based on plot type
+static double getMaxXAxisLimit(QwtPlot *plot)
+{
+    if (plot->title().text() == "Frequency Domain")
+        return (AppConfig::sampleRate >= 1e6) ? 40.0 : 0.1; // MHz or kHz
+    if (plot->title().text() == "Time Domain")
+        return AppConfig::timeWindowSeconds * 1e6;          // microseconds
+    return 1e9;                                             // fallback large limit
+}
+
+// Helper to keep an axis within the data bounds of the attached curve
 static inline void clampAxisToCurve(QwtPlot *plot, int axis)
 {
     const QwtPlotCurve *curve = nullptr;
@@ -30,8 +41,16 @@ static inline void clampAxisToCurve(QwtPlot *plot, int axis)
     if (!curve)
         return;
 
-    const double dataMin = curve->boundingRect().topLeft().x();
-    const double dataMax = curve->boundingRect().bottomRight().x();
+    QRectF rect = curve->boundingRect();
+    double dataMin, dataMax;
+    if (axis == QwtPlot::yLeft || axis == QwtPlot::yRight) {
+        dataMin = rect.top();
+        dataMax = rect.bottom();
+    } else {
+        dataMin = rect.left();
+        dataMax = rect.right();
+    }
+
     if (dataMax <= dataMin)
         return;
 
@@ -59,7 +78,11 @@ public:
 protected:
     void moveCanvas(int dx, int dy) override {
         QwtPlotPanner::moveCanvas(dx, dy);
-        clampAxisToCurve(plot_, QwtPlot::xBottom);
+        auto d = plot_->axisScaleDiv(QwtPlot::xBottom);
+        double limit = getMaxXAxisLimit(plot_);
+        double min = std::max(0.0, d.lowerBound());
+        double max = std::min(limit, d.upperBound());
+        plot_->setAxisScale(QwtPlot::xBottom, min, max);
         plot_->replot();
     }
 private:
@@ -74,7 +97,11 @@ public:
 protected:
     void rescale(double factor) override {
         QwtPlotMagnifier::rescale(factor);
-        clampAxisToCurve(plot_, QwtPlot::xBottom);
+        auto d = plot_->axisScaleDiv(QwtPlot::xBottom);
+        double limit = getMaxXAxisLimit(plot_);
+        double min = std::max(0.0, d.lowerBound());
+        double max = std::min(limit, d.upperBound());
+        plot_->setAxisScale(QwtPlot::xBottom, min, max);
         plot_->replot();
     }
 private:
@@ -174,42 +201,29 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     acquireZoomButtons();
 }
 
-static inline void zoomAxis(QwtPlot *p, int axis, double factorIn)
+static inline void zoomAxis(QwtPlot *plot, int axis, double factorIn)
 {
-    auto d = p->axisScaleDiv(axis);
-    double currentMin = d.lowerBound();
-    double currentMax = d.upperBound();
-    double center = (currentMin + currentMax) / 2.0;
-    double newHalfRange = (currentMax - currentMin) * factorIn / 2.0;
+    auto d = plot->axisScaleDiv(axis);
+    double min  = d.lowerBound();
+    double max  = d.upperBound();
+    double center = 0.5 * (min + max);
+    double halfRange = 0.5 * (max - min) * factorIn;
 
-    // Compute new proposed bounds
-    double newMin = center - newHalfRange;
-    double newMax = center + newHalfRange;
+    double newMin = center - halfRange;
+    double newMax = center + halfRange;
 
-    // Get full plot bounds from curve data
-    const QwtPlotCurve* curve = nullptr;
-    for (const auto *item : p->itemList(QwtPlotItem::Rtti_PlotCurve)) {
-        const auto* c = dynamic_cast<const QwtPlotCurve*>(item);
-        if (c && c->isVisible()) {
-            curve = c;
-            break;
+    if (axis == QwtPlot::xBottom) {
+        double limit = getMaxXAxisLimit(plot);
+        newMin = std::max(0.0, newMin);
+        newMax = std::min(limit, newMax);
+        if ((newMax - newMin) > limit) {
+            newMin = 0.0;
+            newMax = limit;
         }
     }
 
-    if (curve) {
-        const double dataMin = curve->boundingRect().topLeft().x();
-        const double dataMax = curve->boundingRect().bottomRight().x();
-
-        // Clamp zoom-out so we never go beyond data bounds
-        if ((newMax - newMin) >= (dataMax - dataMin)) {
-            newMin = dataMin;
-            newMax = dataMax;
-        }
-    }
-
-    p->setAxisScale(axis, newMin, newMax);
-    clampAxisToCurve(p, axis);
-    p->replot();
+    plot->setAxisScale(axis, newMin, newMax);
+    plot->replot();
 }
 
 
