@@ -22,7 +22,6 @@
 
 
 // Constructor
-
 PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     : QObject(parent)
     , fftPlot_(fftPlot)
@@ -267,8 +266,7 @@ void PlotManager::updateTime(const std::vector<uint16_t>& buf, double Fs, double
     timePlot_->replot();
 }
 
-void PlotManager::updatePlot(FFTProcess *fft, TimeDProcess *time,
-                             bool paused, FFTMode)
+void PlotManager::updatePlot(FFTProcess *fft, TimeDProcess *time, bool paused, FFTMode)
 {
     if (paused) return;
 
@@ -281,9 +279,36 @@ void PlotManager::updatePlot(FFTProcess *fft, TimeDProcess *time,
     {
         std::vector<uint16_t> tb(n);
         time->getBuffer(tb.data(), n);
-        updateTime(tb, AppConfig::sampleRate, AppConfig::timeWindowSeconds,
-                   AppConfig::maxPointsToPlot);
+        updateTime(tb, AppConfig::sampleRate, AppConfig::timeWindowSeconds, AppConfig::maxPointsToPlot);
     }
 }
 
 
+
+/*Future improvements:
+
+Handle resizing, go from fixed in screen to fixed in widget
+
+
+how to move around the buttons:
+
+Because they’re manually positioned, you must move them in code — inside acquireZoomButtons():
+
+cpp
+Copy
+Edit
+int margin = 5;
+int size = 20;
+
+if (fftPlot_) {
+    int xRight = fftPlot_->width() - margin - size;
+    int yBottom = fftPlot_->height() - margin - size;
+
+    if (fftPlusX_)  fftPlusX_->move(xRight, yBottom);      // bottom right
+    if (fftMinusX_) fftMinusX_->move(margin, yBottom);     // bottom left
+    if (fftPlusY_)  fftPlusY_->move(xRight, margin);       // top right
+    if (fftMinusY_) fftMinusY_->move(margin, margin);      // top left
+}
+💡 You can adjust margin or move(x, y) coordinates to fine-tune their placement.
+
+ */
