@@ -23,7 +23,7 @@
 static double getMaxXAxisLimit(QwtPlot *plot)
 {
     if (plot->title().text() == "Frequency Domain")
-        return (AppConfig::sampleRate >= 1e6) ? 40.0 : 0.1; // MHz or kHz
+        return (AppConfig::sampleRate >= 1e6) ? 40.0 : 100; // MHz or kHz
     if (plot->title().text() == "Time Domain")
         return AppConfig::timeWindowSeconds * 1e6;          // microseconds
     return 1e9;                                             // fallback large limit
