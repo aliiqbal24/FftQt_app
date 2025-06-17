@@ -360,8 +360,7 @@ void PlotManager::updatePlot(FFTProcess *fft, TimeDProcess *time, bool paused, F
     }
 }
 
-void PlotManager::positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton *minusX,
-                                  QToolButton *plusY, QToolButton *minusY)
+void PlotManager::positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton *minusX, QToolButton *plusY, QToolButton *minusY)
 {
     if (!plot) return;
 
@@ -376,15 +375,15 @@ void PlotManager::positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton
 
     // (1) X-axis zoom buttons centered at bottom of plot  -- work well
     if (plusX)
-        plusX->move(horizontalCenter + 98, plotH - size ); // ~40 px above bottom
+        plusX->move(horizontalCenter * 1.25, plotH - size ); // ~40 px above bottom
     if (minusX)
-        minusX->move(horizontalCenter - 51, plotH - size ); // ~10 px above bottom
+        minusX->move(horizontalCenter * 0.83, plotH - size ); // ~10 px above bottom
 
     // (2) Y-axis zoom buttons along left edge, vertically spaced          --- WE CAN SOLVE WITH PERCENT BASED
     if (plusY)
         plusY->move(1, plotH * 0.25);  // fixed position inside plot widget
     if (minusY)
-        minusY->move(1, plotH * 0.7); // adjust spacing if needed
+        minusY->move(1, plotH * 0.66); // adjust spacing if needed
 }
 
 
@@ -409,23 +408,5 @@ Handle resizing, go from fixed in screen to fixed in widget
 
 how to move around the buttons:
 
-Because they’re manually positioned, you must move them in code — inside acquireZoomButtons():
-
-cpp
-Copy
-Edit
-int margin = 5;
-int size = 20;
-
-if (fftPlot_) {
-    int xRight = fftPlot_->width() - margin - size;
-    int yBottom = fftPlot_->height() - margin - size;
-
-    if (fftPlusX_)  fftPlusX_->move(xRight, yBottom);      // bottom right
-    if (fftMinusX_) fftMinusX_->move(margin, yBottom);     // bottom left
-    if (fftPlusY_)  fftPlusY_->move(xRight, margin);       // top right
-    if (fftMinusY_) fftMinusY_->move(margin, margin);      // top left
-}
-💡 You can adjust margin or move(x, y) coordinates to fine-tune their placement.
 
  */
