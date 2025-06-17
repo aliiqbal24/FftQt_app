@@ -5,6 +5,7 @@
 #include "TimeDProcess.h"
 #include "PlotManager.h"
 #include "Features.h"
+#include "MenuBarStyler.h"
 
 #include <QTimer>
 #include <QDebug>
@@ -15,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), fft(new FFTProcess()), time(new TimeDProcess()), plotManager(nullptr)
 {
     ui->setupUi(this);
+    MenuBarStyler::applyDarkTheme(ui->menuBar);
 
     // Remove layout margins so zoom buttons align with axes
     if (ui->mainLayout)
