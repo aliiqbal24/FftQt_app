@@ -347,20 +347,20 @@ void PlotManager::positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton
     int plotW = plot->width();
     int plotH = plot->height();
 
-    int verticalCenter = (plotH - size) / 2;
-    int horzinatalCenter = (plotW - size)/ 2;
+    // int verticalCenter = (plotH - size) / 2;
+    int horizontalCenter = (plotW - size)/ 2;
 
     // (1) X-axis zoom buttons centered at bottom of plot  -- work well
     if (plusX)
-        plusX->move(horzinatalCenter + 98, plotH - size ); // ~40 px above bottom
+        plusX->move(horizontalCenter + 98, plotH - size ); // ~40 px above bottom
     if (minusX)
-        minusX->move(horzinatalCenter - 51, plotH - size ); // ~10 px above bottom
+        minusX->move(horizontalCenter - 51, plotH - size ); // ~10 px above bottom
 
-    // (2) Y-axis zoom buttons along left edge, vertically spaced
+    // (2) Y-axis zoom buttons along left edge, vertically spaced          --- WE CAN SOLVE WITH PERCENT BASED
     if (plusY)
-        plusY->move(verticalCenter - 205, plotH - size - 280);  // fixed position inside plot widget
+        plusY->move(1, plotH * 0.25);  // fixed position inside plot widget
     if (minusY)
-        minusY->move(verticalCenter - 205, plotH - size - 150); // adjust spacing if needed
+        minusY->move(1, plotH * 0.7); // adjust spacing if needed
 }
 
 
@@ -378,7 +378,7 @@ bool PlotManager::eventFilter(QObject *obj, QEvent *event)
 
 
 
-/*Future improvements:
+/* Future improvements:
 
 Handle resizing, go from fixed in screen to fixed in widget
 
