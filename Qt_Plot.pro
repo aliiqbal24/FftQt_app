@@ -15,7 +15,8 @@ SOURCES += \
     fft_config.cpp \
     main.cpp \
     mainwindow.cpp \
-    plotmanager.cpp
+    plotmanager.cpp \
+    MenuBarStyler.cpp
 
 # === Header Files ===
 HEADERS += \
@@ -24,7 +25,8 @@ HEADERS += \
     Features.h \
     TimeDProcess.h \
     mainwindow.h \
-    plotmanager.h
+    plotmanager.h \
+    MenuBarStyler.h
 
 # === UI Forms ===
 FORMS += \
