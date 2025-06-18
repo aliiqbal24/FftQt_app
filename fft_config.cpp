@@ -43,6 +43,7 @@
  *
  * same pink icons from:
  * download: https://www.svgrepo.com/svg/524034/download-square?edit=true
+ * pause: https://www.svgrepo.com/svg/523591/pause
  * Icon size: 200 px
  *
  *

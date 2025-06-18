@@ -316,7 +316,11 @@ void PlotManager::updateFFT(const double *buf, double Fs)
     fftCurve_->setSamples(x,y);
     fftPlot_->setAxisTitle(QwtPlot::xBottom,
                            Fs>1e6 ? "Frequency (MHz)" : "Frequency (kHz)");
-    clampAxisToCurve(fftPlot_, QwtPlot::xBottom);
+    // always display the full frequency range so the final tick (40 MHz or
+    // 100 kHz) is visible
+    double limit = getMaxXAxisLimit(fftPlot_);
+    fftPlot_->setAxisScale(QwtPlot::xBottom, 0.0, limit);
+
     fftPlot_->replot();
 }
 
