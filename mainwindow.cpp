@@ -73,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Proper single initialization of plot manager
     plotManager = new PlotManager(ui->FFT_plot, ui->Time_plot, this);
+    plotManager->resetFFTView();
 
     connect(ui->PausePlay, &QPushButton::clicked, this, [=]() {
         Features::togglePause(isPaused);
