@@ -365,7 +365,6 @@ void PlotManager::positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton
     if (!plot) return;
 
     int size = 20;
-    int margin = 8;
 
     int plotW = plot->width();
     int plotH = plot->height();
@@ -375,17 +374,16 @@ void PlotManager::positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton
 
     // (1) X-axis zoom buttons centered at bottom of plot  -- work well
     if (plusX)
-        plusX->move(horizontalCenter * 1.25, plotH - size ); // ~40 px above bottom
+        plusX->move(horizontalCenter * 1.25, plotH - size ); //
     if (minusX)
-        minusX->move(horizontalCenter * 0.83, plotH - size ); // ~10 px above bottom
+        minusX->move(horizontalCenter * 0.83, plotH - size ); //
 
     // (2) Y-axis zoom buttons along left edge, vertically spaced          --- WE CAN SOLVE WITH PERCENT BASED
     if (plusY)
         plusY->move(1, plotH * 0.25);  // fixed position inside plot widget
     if (minusY)
-        minusY->move(1, plotH * 0.66); // adjust spacing if needed
+        minusY->move(1, plotH * 0.66); // adjusting spacing in screen
 }
-
 
 bool PlotManager::eventFilter(QObject *obj, QEvent *event)
 {
