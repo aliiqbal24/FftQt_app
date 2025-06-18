@@ -193,7 +193,7 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     // users can still zoom or pan to adjust the view
 
     fftPlot_->setAxisScale(QwtPlot::yLeft, 0.0, 8.0);      // log magnitude
-    timePlot_->setAxisScale(QwtPlot::yLeft, 0.0, 150.0);   // power in uW
+    timePlot_->setAxisScale(QwtPlot::yLeft, -10.0, 150.0);   // power in uW ...
 
     new BoundedPanner(fftPlot_);
     new BoundedMagnifier(fftPlot_);
