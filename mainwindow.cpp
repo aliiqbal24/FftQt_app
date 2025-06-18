@@ -19,15 +19,15 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     MenuBarStyler::applyDarkTheme(ui->menuBar);
 
-    // Remove layout margins so zoom buttons align with axes
+    // layout margins for softer spacing
     if (ui->mainLayout)
         ui->mainLayout->setContentsMargins(0, 0, 0, 20);  // 4th - bottom spacing
     if (ui->sideLayout)
         ui->sideLayout->setContentsMargins(0, 0, 0, 0);
     if (ui->gridLayoutFFT)
-        ui->gridLayoutFFT->setContentsMargins(0, 0, 0, 20); // 4th - freq / splitter spacing
+        ui->gridLayoutFFT->setContentsMargins(0, 0, 0, 15); // 4th - freq / splitter spacing
     if (ui->gridLayoutTime)
-        ui->gridLayoutTime->setContentsMargins(0, 20, 0, 0); //2nd - time / splitter spacing
+        ui->gridLayoutTime->setContentsMargins(0, 10, 0, 0); //2nd - time / splitter spacing
     if (ui->horizontalSplitter) {
         ui->horizontalSplitter->setStretchFactor(0, 1);
         ui->horizontalSplitter->setStretchFactor(1, 0);
