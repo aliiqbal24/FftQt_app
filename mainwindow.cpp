@@ -75,6 +75,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->PausePlay, &QPushButton::clicked, this, [=]() {
         Features::togglePause(isPaused);
+        if (isPaused)
+            ui->PausePlay->setIcon(QIcon(":/play-svg.svg"));
+        else
+            ui->PausePlay->setIcon(QIcon(":/pause-svg.svg"));
     });
 
     connect(ui->modes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int) {
