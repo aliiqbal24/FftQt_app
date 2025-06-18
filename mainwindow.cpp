@@ -21,13 +21,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Remove layout margins so zoom buttons align with axes
     if (ui->mainLayout)
-        ui->mainLayout->setContentsMargins(0, 0, 0, 0);
+        ui->mainLayout->setContentsMargins(0, 0, 0, 20);  // 4th - bottom spacing
     if (ui->sideLayout)
         ui->sideLayout->setContentsMargins(0, 0, 0, 0);
     if (ui->gridLayoutFFT)
-        ui->gridLayoutFFT->setContentsMargins(0, 0, 0, 0);
+        ui->gridLayoutFFT->setContentsMargins(0, 0, 0, 20); // 4th - freq / splitter spacing
     if (ui->gridLayoutTime)
-        ui->gridLayoutTime->setContentsMargins(0, 0, 0, 0);
+        ui->gridLayoutTime->setContentsMargins(0, 20, 0, 0); //2nd - time / splitter spacing
     if (ui->horizontalSplitter) {
         ui->horizontalSplitter->setStretchFactor(0, 1);
         ui->horizontalSplitter->setStretchFactor(1, 0);
@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->splitter->setStretchFactor(1, 1);
     ui->splitter->setChildrenCollapsible(true);
     ui->splitter->setHandleWidth(1);
-    ui->splitter->setStyleSheet("QSplitter::handle { background-color: rgb(100, 100, 100); }");
+    ui->splitter->setStyleSheet("QSplitter::handle { background-color: rgb(100, 100, 100); }");  // EDIT
 
 
     // General background color for app
