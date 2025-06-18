@@ -3,6 +3,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QKeyEvent>
 #include "Features.h"
 
 QT_BEGIN_NAMESPACE
@@ -20,6 +21,9 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
+
 private:
     Ui::MainWindow *ui;
     FFTProcess     *fft;
@@ -27,6 +31,9 @@ private:
     PlotManager    *plotManager;
     bool            isPaused = false;
     FFTMode         currentMode = FFTMode::FullBandwidth;
+    bool            isFullScreen = false;
+
+    void            toggleFullScreen();
 };
 
 #endif // MAINWINDOW_H
