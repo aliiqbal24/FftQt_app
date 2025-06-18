@@ -158,7 +158,7 @@ FFTProcess::~FFTProcess()
 
 void FFTProcess::start()
 {
-    if (started || workerThread.isRunning()) {
+    if (workerThread.isRunning()) {
         qDebug() << "[FFTProcess] Already started.";
         return;
     }
@@ -179,10 +179,9 @@ void FFTProcess::start()
 
         static int64_t dummy = 0;
         ri_start_continuous_transfer(device, transfer_callback, &dummy);
-    }, Qt::UniqueConnection);
+    });
 
     workerThread.start();
-    started = true;
 }
 
 bool FFTProcess::getMagnitudes(double* dst, int count)

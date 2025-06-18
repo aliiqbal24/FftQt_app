@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QThread>
 #include <cstdint>
+#include <atomic>
 #include <vector>
 #include "Features.h"  // for FFTMode
 
@@ -27,8 +28,6 @@ private:
     FFTMode currentMode = FFTMode::FullBandwidth;
     QThread workerThread;
     pthread_t fftThreads[NUM_FFT_THREADS]; // store FFT thread handles
-    bool started = false;                  // prevent duplicate starts
-
 };
 
 #endif // FFTPROCESS_H
