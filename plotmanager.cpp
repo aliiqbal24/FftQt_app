@@ -18,7 +18,7 @@
 #include <qwt_plot_magnifier.h>
 #include <qwt_scale_widget.h>
 #include <qwt_scale_map.h>
-
+#include <qwt_scale_draw.h>
 
 
 // Determine maximum x-axis limit based on plot type
@@ -110,6 +110,20 @@ private:
     QwtPlot *plot_;
 };
 
+// Scale draw that formats tick labels as powers of ten
+class PowerScaleDraw : public QwtScaleDraw {
+public:
+    QwtText label(double value) const override {
+        int exp = qRound(value);
+        QString txt = QString("10<sup> <span style='font-size:120%%'>%1,</span></sup>").arg(exp);
+        QwtText t(txt);
+        return t;
+    }
+};
+
+
+
+
 
 // Constructor
 PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
@@ -149,6 +163,7 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
         yTitle.setColor(lightGray);
         fftPlot_->setAxisTitle(QwtPlot::xBottom, xTitle);
         fftPlot_->setAxisTitle(QwtPlot::yLeft,   yTitle);
+        fftPlot_->setAxisScaleDraw(QwtPlot::yLeft, new PowerScaleDraw());
     }
     {
         QwtText xTitle("Time (µs)");
