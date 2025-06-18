@@ -37,9 +37,9 @@ MainWindow::MainWindow(QWidget *parent)
     QColor white(255, 255, 255);
 
     // Icons and button sizes
-    ui->PausePlay->setIcon(QIcon(":/play-pause-icon.png"));
+    ui->PausePlay->setIcon(QIcon(":/pause-svg.svg"));
     ui->PausePlay->setIconSize(QSize(48, 48));
-    ui->Save->setIcon(QIcon(":/download-icon.png"));
+    ui->Save->setIcon(QIcon(":/download-svg.svg"));
     ui->Save->setIconSize(QSize(48, 48));
 
     // Peak Frequency label

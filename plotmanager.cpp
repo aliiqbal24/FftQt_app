@@ -400,13 +400,3 @@ bool PlotManager::eventFilter(QObject *obj, QEvent *event)
 }
 
 
-
-/* Future improvements:
-
-Handle resizing, go from fixed in screen to fixed in widget
-
-
-how to move around the buttons:
-
-
- */

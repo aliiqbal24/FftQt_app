@@ -2,5 +2,8 @@
     <qresource prefix="/">
         <file>play-pause-icon.png</file>
         <file>download-icon.png</file>
+	<file>download-svg.svg</file>
+        <file>pause-svg.svg</file>
+	<file>play-svg.svg</file>
     </qresource>
 </RCC>
