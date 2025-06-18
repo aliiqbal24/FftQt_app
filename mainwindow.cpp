@@ -10,6 +10,7 @@
 #include <QTimer>
 #include <QDebug>
 #include <QLayout>
+#include <QKeyEvent>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -136,4 +137,26 @@ MainWindow::~MainWindow() {
     delete time;     // safe since no parent
     delete plotManager;
     delete ui;
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_F11) {
+        toggleFullScreen();
+    } else {
+        QMainWindow::keyPressEvent(event);
+    }
+}
+
+void MainWindow::toggleFullScreen()
+{
+    if (isFullScreen) {
+        ui->menuBar->show();
+        showNormal();
+        isFullScreen = false;
+    } else {
+        ui->menuBar->hide();
+        showFullScreen();
+        isFullScreen = true;
+    }
 }
