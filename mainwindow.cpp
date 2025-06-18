@@ -11,6 +11,7 @@
 #include <QDebug>
 #include <QLayout>
 #include <QKeyEvent>
+#include <QMouseEvent>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -31,6 +32,14 @@ MainWindow::MainWindow(QWidget *parent)
     if (ui->horizontalSplitter) {
         ui->horizontalSplitter->setStretchFactor(0, 1);
         ui->horizontalSplitter->setStretchFactor(1, 0);
+        ui->horizontalSplitter->setMouseTracking(true);
+        ui->horizontalSplitter->installEventFilter(this);
+    }
+
+    if (ui->sidePanel) {
+        ui->sidePanel->hide();
+        ui->sidePanel->setMouseTracking(true);
+        ui->sidePanel->installEventFilter(this);
     }
 
     QColor lightGray(183, 182, 191);
@@ -163,4 +172,28 @@ void MainWindow::toggleFullScreen()
         showFullScreen();
         isFullScreen = true;
     }
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == ui->horizontalSplitter && event->type() == QEvent::MouseMove) {
+        QMouseEvent *me = static_cast<QMouseEvent *>(event);
+        int threshold = 20;
+        int x = me->pos().x();
+        int width = ui->horizontalSplitter->width();
+        int panelLeft = width - ui->sidePanel->width();
+
+        if (!ui->sidePanel->isVisible() && x > width - threshold) {
+            ui->sidePanel->show();
+        } else if (ui->sidePanel->isVisible() && x < panelLeft && !ui->sidePanel->underMouse()) {
+            ui->sidePanel->hide();
+        }
+    } else if (obj == ui->sidePanel) {
+        if (event->type() == QEvent::Leave) {
+            ui->sidePanel->hide();
+        } else if (event->type() == QEvent::Enter) {
+            ui->sidePanel->show();
+        }
+    }
+    return QMainWindow::eventFilter(obj, event);
 }

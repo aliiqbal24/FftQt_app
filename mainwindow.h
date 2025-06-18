@@ -4,6 +4,7 @@
 
 #include <QMainWindow>
 #include <QKeyEvent>
+#include <QEvent>
 #include "Features.h"
 
 QT_BEGIN_NAMESPACE
@@ -23,6 +24,7 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     Ui::MainWindow *ui;
