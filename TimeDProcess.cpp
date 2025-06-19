@@ -113,8 +113,8 @@ void TimeDProcess::getBuffer(uint16_t *dst, int count)
         return;
     }
 
-    int n     = std::min(count, dynamic_time_buffer_size);
-    int end   = total_samples_collected;
+    int n  = std::min(count, dynamic_time_buffer_size);
+    int end = total_samples_collected;
     int start = (end - n + dynamic_time_buffer_size) % dynamic_time_buffer_size;
 
     for (int i = 0; i < n; ++i)

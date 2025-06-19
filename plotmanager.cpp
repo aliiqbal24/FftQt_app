@@ -20,7 +20,6 @@
 #include <qwt_scale_map.h>
 #include <qwt_scale_draw.h>
 
-
 // Determine maximum x-axis limit based on plot type
 static double getMaxXAxisLimit(QwtPlot *plot)
 {
@@ -28,7 +27,7 @@ static double getMaxXAxisLimit(QwtPlot *plot)
         return (AppConfig::sampleRate >= 1e6) ? 40.0 : 100; // MHz or kHz
     if (plot->title().text() == "Time Domain")
         return AppConfig::timeWindowSeconds * 1e6;          // microseconds
-    return 1e9;                                             // fallback large limit
+    return 1e9;                         // fallback large limit
 }
 
 // Helper to keep an axis within the data bounds of the attached curve
@@ -120,8 +119,6 @@ public:
         return t;
     }
 };
-
-
 
 // Constructor
 PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
@@ -249,7 +246,6 @@ static inline void zoomAxis(QwtPlot *plot, int axis, double factorIn)
             newMax = limit;
         }
     }
-
     plot->setAxisScale(axis, newMin, newMax);
     plot->replot();
 }
@@ -330,7 +326,7 @@ void PlotManager::updateFFT(const double *buf, double Fs)
 
     fftCurve_->setSamples(x,y);
     fftPlot_->setAxisTitle(QwtPlot::xBottom,
-                           Fs>1e6 ? "Frequency (MHz)" : "Frequency (kHz)");
+    Fs>1e6 ? "Frequency (MHz)" : "Frequency (kHz)");
 
     fftPlot_->replot();
 }
@@ -348,8 +344,7 @@ void PlotManager::updateTime(const std::vector<uint16_t>& buf, double Fs, double
     for (int i=0;i<N;i+=step)
     {
         x.append(i * dt_us);
-        double p = (static_cast<double>(buf[i]) - AppConfig::adcOffset)
-                   * AppConfig::adcToMicroWatts;
+        double p = (static_cast<double>(buf[i]) - AppConfig::adcOffset) * AppConfig::adcToMicroWatts;
         y.append(p);
     }
     timeCurve_->setSamples(x,y);
