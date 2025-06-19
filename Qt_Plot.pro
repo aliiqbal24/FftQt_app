@@ -51,6 +51,9 @@ RESOURCES += \
     icons.qrc
 
 
+RC_FILE += app_icon.rc
+
+
 #### CONSIDER - this will allow you to run the .exe many times, and handle what happens when we run again while running
 # QMAKE_PRE_LINK += taskkill /F /IM FFT_Qwt_Plotter.exe > nul 2>&1
 

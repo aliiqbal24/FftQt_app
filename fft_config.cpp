@@ -4,23 +4,19 @@
 
 /* Improvements
  *
- * FIX 1st time Crash, when the mode switches, only happens when the app is first loaded
+ * add a flat bar of false data until the user sets the first play
  *
- * Add comments on code
+ * make the side bar toggleable, with animations!!!
  *
- * consider starting off, and using turns it on with one button
- * This same as Pause Play button?
+ * start with it open, can close with button/ slide
  *
- * Pause an play button UI should toggle - use acutal button or paper trail like anovus
  *
- * the slider between the plots should be visible
  *
  * Allows for device connecivity after program launched like pteradactyl -
  *
  * Consider
  *
  * FIX adjustable time, no more bugs, allow up to 10 sec both modes
- * panning and zoom in/out on graphs
  * light mode/ dark mode
  * performance statistics
  *

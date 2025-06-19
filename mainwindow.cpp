@@ -14,6 +14,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QAction>
+#include <vector>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), fft(new FFTProcess()), time(new TimeDProcess()), plotManager(nullptr)
@@ -81,6 +82,13 @@ MainWindow::MainWindow(QWidget *parent)
     // Proper single initialization of plot manager
     plotManager = new PlotManager(ui->FFT_plot, ui->Time_plot, this);
     plotManager->resetFFTView();
+
+    // Display initial flat lines before any data is streamed
+    {
+        std::vector<double> fftInit(AppConfig::fftBins, 100.0); // 10^2 magnitude
+        plotManager->updateFFT(fftInit.data(), AppConfig::sampleRate);
+    }
+
 
     connect(ui->PausePlay, &QPushButton::clicked, this, [=]() {
         Features::togglePause(isPaused);
