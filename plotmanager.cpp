@@ -76,7 +76,10 @@ static inline void clampAxisToCurve(QwtPlot *plot, int axis)
 class BoundedPanner : public QwtPlotPanner {
 public:
     explicit BoundedPanner(QwtPlot *plot)
-        : QwtPlotPanner(plot->canvas()), plot_(plot) {}
+        : QwtPlotPanner(plot->canvas()), plot_(plot)
+    {
+        setMouseButton(Qt::RightButton);
+    }
 protected:
     void moveCanvas(int dx, int dy) override {
         QwtPlotPanner::moveCanvas(dx, dy);
