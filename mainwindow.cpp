@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->splitter->setStretchFactor(1, 1);
     ui->splitter->setChildrenCollapsible(true);
     ui->splitter->setHandleWidth(1);
-    ui->splitter->setStyleSheet("QSplitter::handle { background-color: rgb(100, 100, 100); }");  // EDIT
+    ui->splitter->setStyleSheet("QSplitter::handle { background-color: rgb(140, 140, 140); }");  // EDIT
 
 
     // General background color for app
