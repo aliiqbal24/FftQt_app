@@ -18,6 +18,7 @@ public:
     ~FFTProcess();
 
     void start();
+    bool isRunning() const { return workerThread.isRunning(); }
     bool getMagnitudes(double *dst, int count);
     void setMode(FFTMode mode);
 

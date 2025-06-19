@@ -18,6 +18,7 @@ public:
     ~TimeDProcess();
 
     void start();                                // start worker thread
+    bool isRunning() const { return workerThread.isRunning(); }
     void resize(int size);                       // resize circular buffer
     int  sampleCount() const;                    // total collected samples
     void getBuffer(uint16_t *dst, int count);    // copy ‘count’ samples to dst
