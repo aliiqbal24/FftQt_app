@@ -13,6 +13,7 @@
 #include <QThread>
 #include <vector>
 #include <atomic>
+#include <algorithm>
 
 #define NUM_BUFFERS     8
 #define NUM_FFT_THREADS 3
@@ -30,6 +31,7 @@ static double* fft_queue[NUM_BUFFERS];
 static std::atomic<int> queue_head{0}, queue_tail{0};
 static pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t queue_not_empty = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t magnitude_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static double* current_buffer = fft_buffers[0].data();
 static int buffer_index = 0;
@@ -51,6 +53,7 @@ static void* fft_thread_func(void*)
 {
     fftw_complex* fft_output = new fftw_complex[AppConfig::fftBins];
     fftw_plan plan = fftw_plan_dft_r2c_1d(AppConfig::fftSize, nullptr, fft_output, FFTW_ESTIMATE);
+    std::vector<double> local_magnitudes(AppConfig::fftBins);
 
     while (true) {
         pthread_mutex_lock(&queue_mutex);
@@ -73,13 +76,17 @@ static void* fft_thread_func(void*)
             double re = fft_output[j][0];
             double im = fft_output[j][1];
             double mag = std::sqrt(re * re + im * im);
-            fft_magnitude_buffer[j] = mag;
+            local_magnitudes[j] = mag;
 
             if (j >= ignoreBins && j <= ignoreBinsTop && mag > peakValue) {
                 peakValue = mag;
                 peakIndex = j;
             }
         }
+
+        pthread_mutex_lock(&magnitude_mutex);
+        std::copy(local_magnitudes.begin(), local_magnitudes.end(), fft_magnitude_buffer.begin());
+        pthread_mutex_unlock(&magnitude_mutex);
 
         if (peak_callback) {
             double freq = (peakIndex *
@@ -189,8 +196,10 @@ bool FFTProcess::getMagnitudes(double* dst, int count)
     if (fft_data_ready.exchange(0) == 0)
         return false;
 
+    pthread_mutex_lock(&magnitude_mutex);
     for (int i = 0; i < count && i < AppConfig::fftBins; ++i)
         dst[i] = fft_magnitude_buffer[i];
+    pthread_mutex_unlock(&magnitude_mutex);
 
     return true;
 }
