@@ -11,6 +11,8 @@
 #include <QDebug>
 #include <QLayout>
 #include <QKeyEvent>
+#include <QDesktopServices>
+#include <QUrl>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -18,6 +20,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     MenuBarStyler::applyDarkTheme(ui->menuBar);
+    connect(ui->Logo, &QMenu::aboutToShow, this, &MainWindow::openUltracousticsSite);
+
 
     // layout margins for softer spacing
     if (ui->mainLayout)
@@ -164,3 +168,11 @@ void MainWindow::toggleFullScreen()
         isFullScreen = true;
     }
 }
+
+void MainWindow::openUltracousticsSite()
+{
+    QDesktopServices::openUrl(QUrl("https://ultracoustics.ca"));
+        ui->Logo->close();
+
+}
+

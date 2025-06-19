@@ -123,8 +123,6 @@ public:
 
 
 
-
-
 // Constructor
 PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     : QObject(parent)

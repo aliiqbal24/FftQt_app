@@ -33,6 +33,10 @@ private:
     FFTMode         currentMode = FFTMode::FullBandwidth;
     bool            isFullScreen = false;
 
+private Q_SLOTS:
+
+    void openUltracousticsSite();
+
     void            toggleFullScreen();
 };
 
