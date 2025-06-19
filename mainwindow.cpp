@@ -13,7 +13,7 @@
 #include <QKeyEvent>
 #include <QDesktopServices>
 #include <QUrl>
-
+#include <QAction>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), fft(new FFTProcess()), time(new TimeDProcess()), plotManager(nullptr)

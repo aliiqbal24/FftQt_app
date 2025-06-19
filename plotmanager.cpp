@@ -387,7 +387,7 @@ void PlotManager::positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton
 
     // (1) X-axis zoom buttons centered at bottom of plot  -- work well
     if (plusX)
-        plusX->move(horizontalCenter * 1.25, plotH - size ); //
+        plusX->move(horizontalCenter * 1.28, plotH - size ); //
     if (minusX)
         minusX->move(horizontalCenter * 0.83, plotH - size ); //
 
