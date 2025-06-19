@@ -30,6 +30,18 @@ TimeDProcess::~TimeDProcess()
 {
     workerThread.quit();
     workerThread.wait();
+
+    // fix dangling pointer - eh
+    pthread_mutex_lock(&time_mutex);
+    uint16_t *old_buffer = time_buffer;
+    time_buffer = nullptr;
+    dynamic_time_buffer_size = 0;
+    total_samples_collected = 0;
+    pthread_mutex_unlock(&time_mutex);
+
+    free(old_buffer);
+
+    instance = nullptr;
 }
 
 void TimeDProcess::start()
