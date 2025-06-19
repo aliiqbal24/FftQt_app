@@ -11,9 +11,11 @@
 #include <QDebug>
 #include <QLayout>
 #include <QKeyEvent>
+#include <QEvent>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QAction>
+#include <cmath>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), fft(new FFTProcess()), time(new TimeDProcess()), plotManager(nullptr)
@@ -63,11 +65,14 @@ MainWindow::MainWindow(QWidget *parent)
     // Splitter setup
     QList<int> initialSizes { height() / 2, height() / 2 };
     ui->splitter->setSizes(initialSizes);
+    defaultSplitterSizes = initialSizes;
     ui->splitter->setStretchFactor(0, 1);
     ui->splitter->setStretchFactor(1, 1);
     ui->splitter->setChildrenCollapsible(true);
-    ui->splitter->setHandleWidth(1);
-    ui->splitter->setStyleSheet("QSplitter::handle { background-color: rgb(100, 100, 100); }");  // EDIT
+    ui->splitter->setHandleWidth(6);
+    ui->splitter->setStyleSheet("QSplitter::handle { background-color: rgb(100, 100, 100); }");
+    if (ui->splitter->count() >= 2)
+        ui->splitter->handle(1)->installEventFilter(this);
 
 
     // General background color for app
@@ -174,5 +179,34 @@ void MainWindow::openUltracousticsSite()
     QDesktopServices::openUrl(QUrl("https://ultracoustics.ca"));
         ui->Logo->close();
 
+}
+
+void MainWindow::resetSplitter()
+{
+    if (!ui->splitter)
+        return;
+
+    ui->splitter->setSizes(defaultSplitterSizes);
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (ui->splitter && obj == ui->splitter->handle(1)) {
+        if (event->type() == QEvent::MouseButtonDblClick) {
+            resetSplitter();
+            return true;
+        } else if (event->type() == QEvent::MouseButtonRelease) {
+            auto sizes = ui->splitter->sizes();
+            if (sizes.size() >= 2) {
+                int tolerance = 5;
+                if (std::abs(sizes[0] - defaultSplitterSizes[0]) <= tolerance &&
+                    std::abs(sizes[1] - defaultSplitterSizes[1]) <= tolerance)
+                {
+                    ui->splitter->setSizes(defaultSplitterSizes);
+                }
+            }
+        }
+    }
+    return QMainWindow::eventFilter(obj, event);
 }
 
