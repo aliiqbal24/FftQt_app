@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     QColor white(255, 255, 255);
 
     // Icons and button sizes
-    ui->PausePlay->setIcon(QIcon(":/pause-svg.svg"));
+    ui->PausePlay->setIcon(QIcon(":/play-svg.svg"));
     ui->PausePlay->setIconSize(QSize(48, 48));
     ui->Save->setIcon(QIcon(":/download-svg.svg"));
     ui->Save->setIconSize(QSize(48, 48));
@@ -84,10 +84,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->PausePlay, &QPushButton::clicked, this, [=]() {
         Features::togglePause(isPaused);
-        if (isPaused)
+        if (isPaused) {
             ui->PausePlay->setIcon(QIcon(":/play-svg.svg"));
-        else
+        } else {
             ui->PausePlay->setIcon(QIcon(":/pause-svg.svg"));
+
+            if (!fft->isRunning()) {
+                qDebug() << "[MainWindow] Starting FFT...";
+                fft->start();
+                qDebug() << "[MainWindow] FFT started.";
+
+                qDebug() << "[MainWindow] Starting Time...";
+                time->start();
+                qDebug() << "[MainWindow] Time started.";
+            }
+        }
     });
 
     connect(ui->modes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int) {
@@ -127,17 +138,6 @@ MainWindow::MainWindow(QWidget *parent)
     plotTimer->start(AppConfig::plotRefreshRateMs);
 
     fft->setMode(currentMode);
-
-    // Delay starting the streaming until after the GUI is fully shown
-     QTimer::singleShot(0, this, [this] {
-        qDebug() << "[MainWindow] Delayed FFT and Time start...";
-
-        fft->start();
-        qDebug() << "[MainWindow] FFT started.";
-
-        time->start();
-        qDebug() << "[MainWindow] Time started.";
-    });           // dont start yet
 }
 
 MainWindow::~MainWindow() {

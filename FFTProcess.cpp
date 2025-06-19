@@ -170,6 +170,17 @@ void FFTProcess::start()
         return;
     }
 
+    // Quick check if the RI device is available before spawning the thread
+    ri_init();
+    ri_device *probe = ri_open_device();
+    if (!probe) {
+        qWarning("RI device not found");
+        ri_exit();
+        return;
+    }
+    probe = ri_close_device(probe);
+    ri_exit();
+
     connect(&workerThread, &QThread::started, this, [this]() {
         qDebug() << "[FFTProcess] Thread started";
 

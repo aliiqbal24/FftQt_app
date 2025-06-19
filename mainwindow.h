@@ -29,7 +29,7 @@ private:
     FFTProcess     *fft;
     TimeDProcess   *time;
     PlotManager    *plotManager;
-    bool            isPaused = false;
+    bool            isPaused = true;
     FFTMode         currentMode = FFTMode::FullBandwidth;
     bool            isFullScreen = false;
 
