@@ -207,6 +207,8 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
 
     fftPlot_->setAxisScale(QwtPlot::yLeft, 0.0, 8.0);      // log magnitude
     timePlot_->setAxisScale(QwtPlot::yLeft, -10.0, 150.0);   // power in uW ...
+    double limit = AppConfig::timeWindowSeconds * 1e6;
+    timePlot_->setAxisScale(QwtPlot::xBottom, 0.0, limit);
 
     new BoundedPanner(fftPlot_);
     new BoundedMagnifier(fftPlot_);

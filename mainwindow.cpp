@@ -89,7 +89,6 @@ MainWindow::MainWindow(QWidget *parent)
         plotManager->updateFFT(fftInit.data(), AppConfig::sampleRate);
     }
 
-
     connect(ui->PausePlay, &QPushButton::clicked, this, [=]() {
         Features::togglePause(isPaused);
         if (isPaused) {
