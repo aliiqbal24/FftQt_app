@@ -31,7 +31,7 @@ TimeDProcess::~TimeDProcess()
     workerThread.quit();
     workerThread.wait();
 
-    // fix dangling pointer - eh
+    // fix dangling pointer - could be problematic seems competent for now
     pthread_mutex_lock(&time_mutex);
     uint16_t *old_buffer = time_buffer;
     time_buffer = nullptr;
