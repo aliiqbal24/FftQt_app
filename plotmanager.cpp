@@ -362,7 +362,7 @@ void PlotManager::updatePlot(FFTProcess *fft, TimeDProcess *time, bool paused, F
         updateFFT(fftBuf.data(), AppConfig::sampleRate);
 
     int n = time->sampleCount();
-    if (n>0)
+    if (n > 0)
     {
         std::vector<uint16_t> tb(n);
         time->getBuffer(tb.data(), n);

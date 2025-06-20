@@ -36,7 +36,7 @@ static pthread_mutex_t magnitude_mutex = PTHREAD_MUTEX_INITIALIZER;
 static double* current_buffer = fft_buffers[0].data();
 static int buffer_index = 0;
 
-static FFTMode internalMode = FFTMode::FullBandwidth;
+static std::atomic<FFTMode> internalMode{FFTMode::FullBandwidth};
 static FFTProcess* fft_instance = nullptr;
 static PeakFrequencyCallback peak_callback = nullptr;
 
@@ -90,8 +90,8 @@ static void* fft_thread_func(void*)
 
         if (peak_callback) {
             double freq = (peakIndex *
-                           ((internalMode == FFTMode::LowBandwidth) ? 200000.0 : 80000000.0)) /AppConfig::fftSize;
-            freq /= (internalMode == FFTMode::LowBandwidth) ? 1000.0 : 1e6;
+                           ((internalMode.load() == FFTMode::LowBandwidth) ? 200000.0 : 80000000.0)) /AppConfig::fftSize;
+            freq /= (internalMode.load() == FFTMode::LowBandwidth) ? 1000.0 : 1e6;
             peak_callback(freq);
         }
 
@@ -107,7 +107,7 @@ static int transfer_callback(uint16_t* data, int ndata, int, void*)
     TimeDProcess::transferCallback(data, ndata, 0, nullptr);
 
     constexpr int ADC_RATE = 80000000;
-    int targetRate = (internalMode == FFTMode::LowBandwidth) ? 200000 : ADC_RATE;
+    int targetRate = (internalMode.load() == FFTMode::LowBandwidth) ? 200000 : ADC_RATE;
     int downsample = ADC_RATE / targetRate;
 
     static int skip = 0;
@@ -184,7 +184,7 @@ void FFTProcess::start()
     connect(&workerThread, &QThread::started, this, [this]() {
         qDebug() << "[FFTProcess] Thread started";
 
-        internalMode = currentMode;
+        internalMode.store(currentMode);
         fft_instance = this;
         peak_callback = emit_peak;
 
@@ -218,5 +218,5 @@ bool FFTProcess::getMagnitudes(double* dst, int count)
 void FFTProcess::setMode(FFTMode mode)
 {
     currentMode = mode;
-    internalMode = mode;
+    internalMode.store(mode);
 }
