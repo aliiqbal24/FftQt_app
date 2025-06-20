@@ -21,12 +21,29 @@ void Features::togglePause(bool &isPaused) { // flip state
 
 // button function
 void Features::switchMode(FFTMode &mode) { // mode switch, adjust Psuedo Sample rate
+    FFTMode previous = mode;
     if (mode == FFTMode::FullBandwidth)
         mode = FFTMode::LowBandwidth;
     else
         mode = FFTMode::FullBandwidth;
 
-    AppConfig::sampleRate = (mode == FFTMode::FullBandwidth) ? 80e6 : 200000;
+    if (mode == FFTMode::FullBandwidth) {
+        AppConfig::sampleRate = AppConfig::fullBandwidthRate;
+        // When switching from Low to High bandwidth use a smaller FFT size
+        if (previous == FFTMode::LowBandwidth) {
+            AppConfig::fftSize = 6561;
+            AppConfig::fftBins = AppConfig::fftSize / 2 + 1;
+            AppConfig::fftHopSize = static_cast<int>(AppConfig::fftSize * (1.0 - AppConfig::fftOverlapFraction));
+        }
+    } else {
+        AppConfig::sampleRate = AppConfig::lowBandwidthRate;
+        // revert to default FFT configuration when entering low bandwidth
+        if (previous == FFTMode::FullBandwidth) {
+            AppConfig::fftSize = 19683;
+            AppConfig::fftBins = AppConfig::fftSize / 2 + 1;
+            AppConfig::fftHopSize = static_cast<int>(AppConfig::fftSize * (1.0 - AppConfig::fftOverlapFraction));
+        }
+    }
 
     qDebug() << "[Features] Mode switched to:"<< (mode == FFTMode::FullBandwidth ? "FullBandwidth" : "LowBandwidth");
 }

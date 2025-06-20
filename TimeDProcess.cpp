@@ -10,7 +10,7 @@
 
 namespace {
 // buffer size = sample‑rate × time‑window
-static int  dynamic_time_buffer_size = AppConfig::timeWindowSeconds * AppConfig::sampleRate;
+static int  dynamic_time_buffer_size = static_cast<int>(AppConfig::timeWindowSeconds * AppConfig::fullBandwidthRate);
 
 static uint16_t   *time_buffer   = nullptr;
 static pthread_mutex_t time_mutex = PTHREAD_MUTEX_INITIALIZER;

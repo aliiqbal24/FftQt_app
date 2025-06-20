@@ -77,7 +77,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->modes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int) {
         Features::switchMode(currentMode);
-        time->resize(static_cast<int>(AppConfig::sampleRate * AppConfig::timeWindowSeconds + 1));
+        // Keep the time-domain buffer size equal to the high-bandwidth mode
+        time->resize(static_cast<int>(AppConfig::fullBandwidthRate * AppConfig::timeWindowSeconds + 1));
         fft->setMode(currentMode);
 
         qDebug() << "[MainWindow] Mode change: Starting FFT...";

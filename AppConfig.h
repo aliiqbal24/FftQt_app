@@ -5,7 +5,10 @@
 #include <cstddef>
 
 struct AppConfig {
-    static inline double sampleRate   = 80e6;
+    static inline constexpr double fullBandwidthRate = 80e6;
+    static inline constexpr double lowBandwidthRate  = 200000.0;
+
+    static inline double sampleRate   = fullBandwidthRate;
     static inline double timeWindowSeconds  = 100e-6;
     static inline int maxPointsToPlot  = 10000;
     static inline int plotRefreshRateMs  = 5; // lower the better tbh, but theres better ways to improve responsiveness
