@@ -2,6 +2,8 @@
 
 A real-time signal visualization app built with **Qt 6**, **Qwt**, and powered by **Intel MKL** + **FFTW** for high-performance FFT analysis. Designed for use with the **DPD80 photodetector** by Resolved Instruments.
 
+REMINDER: credit SVG from links, in licensing page
+
 ---
 
 ## 📡 Features
