@@ -28,54 +28,102 @@
         <layout class="QGridLayout" name="gridLayoutFFT">
          <item row="1" column="2">
           <widget class="QToolButton" name="fftPlusX">
-           <property name="icon">
-            <iconset resource="icons.qrc">
-             <normaloff>:/plus-svg.svg</normaloff>
-            </iconset>
+           <property name="autoRaise">
+            <bool>true</bool>
            </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+           </size>
+          </property>
+          <property name="icon">
+           <iconset resource="icons.qrc">
+            <normaloff>:/plus-svg.svg</normaloff>
+           </iconset>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton { background-color: transparent; border: none; }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
          </item>
          <item row="1" column="1">
           <widget class="QwtPlot" name="FFT_plot" native="true"/>
          </item>
          <item row="2" column="1">
           <widget class="QToolButton" name="fftMinusY">
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="icon">
             <iconset resource="icons.qrc">
              <normaloff>:/minus-svg.svg</normaloff>
-            </iconset>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           </iconset>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton { background-color: transparent; border: none; }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
          </item>
          <item row="1" column="0">
           <widget class="QToolButton" name="fftMinusX">
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="icon">
-            <iconset resource="icons.qrc">
-             <normaloff>:/minus-svg.svg</normaloff>
-            </iconset>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           <iconset resource="icons.qrc">
+            <normaloff>:/minus-svg.svg</normaloff>
+           </iconset>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton { background-color: transparent; border: none; }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
          </item>
          <item row="0" column="1">
           <widget class="QToolButton" name="fftPlusY">
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="icon">
-            <iconset resource="icons.qrc">
-             <normaloff>:/plus-svg.svg</normaloff>
-            </iconset>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           <iconset resource="icons.qrc">
+            <normaloff>:/plus-svg.svg</normaloff>
+           </iconset>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton { background-color: transparent; border: none; }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
          </item>
         </layout>
        </widget>
@@ -86,51 +134,99 @@
          </item>
          <item row="0" column="1">
           <widget class="QToolButton" name="timePlusY">
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="icon">
-            <iconset resource="icons.qrc">
-             <normaloff>:/plus-svg.svg</normaloff>
-            </iconset>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           <iconset resource="icons.qrc">
+            <normaloff>:/plus-svg.svg</normaloff>
+           </iconset>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton { background-color: transparent; border: none; }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
          </item>
          <item row="2" column="1">
           <widget class="QToolButton" name="timeMinusY">
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="icon">
-            <iconset resource="icons.qrc">
-             <normaloff>:/minus-svg.svg</normaloff>
-            </iconset>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           <iconset resource="icons.qrc">
+            <normaloff>:/minus-svg.svg</normaloff>
+           </iconset>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton { background-color: transparent; border: none; }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
          </item>
          <item row="1" column="0">
           <widget class="QToolButton" name="timeMinusX">
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="icon">
-            <iconset resource="icons.qrc">
-             <normaloff>:/minus-svg.svg</normaloff>
-            </iconset>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           <iconset resource="icons.qrc">
+            <normaloff>:/minus-svg.svg</normaloff>
+           </iconset>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton { background-color: transparent; border: none; }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
          </item>
          <item row="1" column="2">
           <widget class="QToolButton" name="timePlusX">
+           <property name="autoRaise">
+            <bool>true</bool>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="icon">
-            <iconset resource="icons.qrc">
-             <normaloff>:/plus-svg.svg</normaloff>
-            </iconset>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           <iconset resource="icons.qrc">
+            <normaloff>:/plus-svg.svg</normaloff>
+           </iconset>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QToolButton { background-color: transparent; border: none; }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
          </item>
         </layout>
        </widget>
