@@ -25,9 +25,10 @@
 // Determine maximum x-axis limit based on plot type
 static double getMaxXAxisLimit(QwtPlot *plot)
 {
-    if (plot->title().text() == "Frequency Domain")
+    const QString name = plot->objectName();
+    if (name == "FFT_plot")
         return (AppConfig::sampleRate >= 1e6) ? 40.0 : 100; // MHz or kHz
-    if (plot->title().text() == "Time Domain")
+    if (name == "Time_plot")
         return AppConfig::timeWindowSeconds * 1e6;          // microseconds
     return 1e9;                         // fallback large limit
 }
@@ -142,15 +143,19 @@ PlotManager::PlotManager(QwtPlot *fftPlot, QwtPlot *timePlot, QObject *parent)
     fftPlot_->setCanvasBackground(backgroundColor);
     timePlot_->setCanvasBackground(backgroundColor);
 
-    {
+    if (AppConfig::showPlotTitles) {
         QwtText t("Frequency Domain");
         t.setColor(lightGray);
         fftPlot_->setTitle(t);
+    } else {
+        fftPlot_->setTitle("");
     }
-    {
+    if (AppConfig::showPlotTitles) {
         QwtText t("Time Domain");
         t.setColor(lightGray);
         timePlot_->setTitle(t);
+    } else {
+        timePlot_->setTitle("");
     }
 
     {
