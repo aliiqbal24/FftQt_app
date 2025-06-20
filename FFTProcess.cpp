@@ -160,7 +160,7 @@ FFTProcess::~FFTProcess()
 {
     workerThread.quit();
     workerThread.wait();
-    // NOTE: You could use pthread_cancel on threads if graceful stop is needed
+    // NOTE: could use pthread_cancel on threads if graceful stop is needed
 }
 
 void FFTProcess::start()

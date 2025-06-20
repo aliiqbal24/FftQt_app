@@ -35,7 +35,7 @@ private:
     void acquireZoomButtons();
 
     void positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton *minusX,
-                         QToolButton *plusY, QToolButton *minusY);
+    QToolButton *plusY, QToolButton *minusY);
 
     // plots & curves
     QwtPlot        *fftPlot_;

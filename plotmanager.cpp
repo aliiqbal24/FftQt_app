@@ -30,10 +30,10 @@ static double getMaxXAxisLimit(QwtPlot *plot)
         return (AppConfig::sampleRate >= 1e6) ? 40.0 : 100; // MHz or kHz
     if (name == "Time_plot")
         return AppConfig::timeWindowSeconds * 1e6;          // microseconds
-    return 1e9;                         // fallback large limit
+    return 1e9;    // fallback large limit
 }
 
-// Helper to keep an axis within the data bounds of the attached curve
+// Helper to keep an axis within the data bounds
 static inline void clampAxisToCurve(QwtPlot *plot, int axis)
 {
     const QwtPlotCurve *curve = nullptr;
@@ -70,11 +70,12 @@ static inline void clampAxisToCurve(QwtPlot *plot, int axis)
         if (lower < dataMin) { lower = dataMin; upper = lower + width; }
         if (upper > dataMax) { upper = dataMax; lower = upper - width; }
     }
-
     plot->setAxisScale(axis, lower, upper);
 }
 
+
 // Panner that keeps the view within data bounds
+
 class BoundedPanner : public QwtPlotPanner {
 public:
     explicit BoundedPanner(QwtPlot *plot)

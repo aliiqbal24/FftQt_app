@@ -15,6 +15,7 @@ static int  dynamic_time_buffer_size = AppConfig::timeWindowSeconds * AppConfig:
 static uint16_t   *time_buffer   = nullptr;
 static pthread_mutex_t time_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int   total_samples_collected = 0;
+static int write_idx = 0;
 }
 
 TimeDProcess* TimeDProcess::instance = nullptr;  // Static instance pointer
@@ -37,6 +38,7 @@ TimeDProcess::~TimeDProcess()
     time_buffer = nullptr;
     dynamic_time_buffer_size = 0;
     total_samples_collected = 0;
+    write_idx = 0;  // reset to avoid out-of-bounds writes on next use
     pthread_mutex_unlock(&time_mutex);
 
     free(old_buffer);
@@ -85,6 +87,7 @@ void TimeDProcess::resize(int size)
     time_buffer = new_buffer;
     dynamic_time_buffer_size = size;
     total_samples_collected = 0;
+    write_idx = 0;  // reset to avoid out-of-bounds writes on resize
 
     pthread_mutex_unlock(&time_mutex);
     free(old_buffer);
@@ -125,8 +128,6 @@ void TimeDProcess::getBuffer(uint16_t *dst, int count)
 
 int TimeDProcess::transferCallback(uint16_t *data, int ndata, int /*dataloss*/, void * /*user*/)
 {
-    static int write_idx = 0;
-
     if (instance && instance->isResizing.load()) {
         return 0;  // Skip if resizing in progress
     }

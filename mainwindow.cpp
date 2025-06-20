@@ -178,6 +178,8 @@ void MainWindow::toggleFullScreen()
 
 void MainWindow::openUltracousticsSite()
 {
+
+    // this should be done only on click NEVER with hover
     QDesktopServices::openUrl(QUrl("https://ultracoustics.ca"));
         ui->Logo->close();
 
