@@ -9,7 +9,7 @@ struct AppConfig {
 
     static inline double timeWindowSeconds  = 100e-6;// semi adjustable
 
-    static inline int maxPointsToPlot  = 10000; // reconsider this number
+    static inline int maxPointsToPlot  = 1000000; // reconsider this number
 
     static inline int plotRefreshRateMs  = 5; // lower the better tbh, but theres better ways to improve responsiveness
 
@@ -22,7 +22,7 @@ struct AppConfig {
     static inline constexpr double fftOverlapFraction = 0.5; // overlapping fft windows, gpts idea ( starts when 50% buffer is full)
     static inline int fftHopSize = static_cast<int>(fftSize * (1.0 - fftOverlapFraction)); // speeds up fft in small bandwidth
 
-    static constexpr double epsilon = 1e-12;
+    static constexpr double epsilon = 1e-12; // avoid 0 divide errors
 
     // signal val to uW conversion - double check this conversion
     static inline double adcOffset = 49555.0;
