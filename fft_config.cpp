@@ -10,8 +10,6 @@
  *
  * start with it open, can close with button/ slide
  *
- *
- *
  * Allows for device connecivity after program launched like pteradactyl -
  *
  * Consider
