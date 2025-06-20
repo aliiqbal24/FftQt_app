@@ -27,6 +27,9 @@ void Features::switchMode(FFTMode &mode) { // mode switch, adjust Psuedo Sample 
         mode = FFTMode::FullBandwidth;
 
     AppConfig::sampleRate = (mode == FFTMode::FullBandwidth) ? 80e6 : 200000 ;
+    AppConfig::fftSize = (mode == FFTMode::LowBandwidth) ? 10935 : 19683;
+    AppConfig::fftBins = AppConfig::fftSize / 2 + 1;
+    AppConfig::fftHopSize = static_cast<int>(AppConfig::fftSize * (1.0 - AppConfig::fftOverlapFraction));
 
     qDebug() << "[Features] Mode switched to:"<< (mode == FFTMode::FullBandwidth ? "FullBandwidth" : "LowBandwidth");
 }

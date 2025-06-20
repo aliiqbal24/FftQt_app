@@ -13,7 +13,11 @@
 #include <QThread>
 #include <vector>
 #include <atomic>
+
 #include <algorithm>
+
+#define MAX_FFT_SIZE 19683
+#define MAX_FFT_BINS (MAX_FFT_SIZE / 2 + 1)
 
 #define NUM_BUFFERS     8
 #define NUM_FFT_THREADS 3
@@ -23,8 +27,8 @@ using PeakFrequencyCallback = void(*)(double);
 // Shared initialization
 
 static std::atomic<int> fft_data_ready{0};
-static std::vector<double> fft_magnitude_buffer(AppConfig::fftBins);
-static std::vector<std::vector<double>> fft_buffers(NUM_BUFFERS, std::vector<double>(AppConfig::fftSize));
+static std::vector<double> fft_magnitude_buffer(MAX_FFT_BINS);
+static std::vector<std::vector<double>> fft_buffers(NUM_BUFFERS, std::vector<double>(MAX_FFT_SIZE));
 
 static int write_index = 0;
 static double* fft_queue[NUM_BUFFERS];
@@ -51,11 +55,17 @@ static void emit_peak(double freq) // refresh peak freq
 
 static void* fft_thread_func(void*)
 {
-    fftw_complex* fft_output = new fftw_complex[AppConfig::fftBins];
-    fftw_plan plan = fftw_plan_dft_r2c_1d(AppConfig::fftSize, nullptr, fft_output, FFTW_ESTIMATE);
-    std::vector<double> local_magnitudes(AppConfig::fftBins);
+    fftw_complex* fft_output = new fftw_complex[MAX_FFT_BINS];
+    int planSize = AppConfig::fftSize;
+    fftw_plan plan = fftw_plan_dft_r2c_1d(planSize, nullptr, fft_output, FFTW_ESTIMATE);
+    std::vector<double> local_magnitudes(MAX_FFT_BINS);
 
     while (true) {
+        if (planSize != AppConfig::fftSize) {
+            fftw_destroy_plan(plan);
+            planSize = AppConfig::fftSize;
+            plan = fftw_plan_dft_r2c_1d(planSize, nullptr, fft_output, FFTW_ESTIMATE);
+        }
         pthread_mutex_lock(&queue_mutex);
         while (queue_head == queue_tail)
             pthread_cond_wait(&queue_not_empty, &queue_mutex);
@@ -98,6 +108,7 @@ static void* fft_thread_func(void*)
         fft_data_ready.store(1);
     }
 
+    fftw_destroy_plan(plan);
     delete[] fft_output;
     return nullptr;
 }
