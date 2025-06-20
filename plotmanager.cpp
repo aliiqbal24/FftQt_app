@@ -7,6 +7,8 @@
 #include <QPen>
 #include <QPalette>
 #include <QToolButton>
+#include <QIcon>
+#include <QSize>
 #include <QGridLayout>
 #include <QEvent>
 #include <cmath>
@@ -265,14 +267,27 @@ void PlotManager::acquireZoomButtons()
     timePlusY_  = timeCont->findChild<QToolButton*>("timePlusY");
     timeMinusY_ = timeCont->findChild<QToolButton*>("timeMinusY");
 
-    QList<QToolButton*> all { fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_, timePlusX_,timeMinusX_,timePlusY_,timeMinusY_ };
+    QList<QToolButton*> all { fftPlusX_, fftMinusX_, fftPlusY_, fftMinusY_,
+                             timePlusX_, timeMinusX_, timePlusY_, timeMinusY_ };
+
+    QIcon plusIcon(":/plus-svg.svg");
+    QIcon minusIcon(":/minus-svg.svg");
 
     for (auto *b : all)
     {
         if (!b) { qWarning("[PlotManager] Zoom button missing in .ui !"); continue; }
         b->setFixedSize(20,20);
-        b->setStyleSheet("background:#808080; color:black; border:1px solid black;");
+        b->setIconSize(QSize(20,20));
+        b->setAutoRaise(true);
+        b->setStyleSheet("background:transparent; border:none;");
+        b->setText("");
     }
+
+    for (QToolButton *b : { fftPlusX_, fftPlusY_, timePlusX_, timePlusY_ })
+        if (b) b->setIcon(plusIcon);
+
+    for (QToolButton *b : { fftMinusX_, fftMinusY_, timeMinusX_, timeMinusY_ })
+        if (b) b->setIcon(minusIcon);
 
     QGridLayout *fftLayout  = qobject_cast<QGridLayout*>(fftCont->layout());
     QGridLayout *timeLayout = qobject_cast<QGridLayout*>(timeCont->layout());

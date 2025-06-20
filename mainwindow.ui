@@ -29,7 +29,7 @@
          <item row="1" column="2">
           <widget class="QToolButton" name="fftPlusX">
            <property name="text">
-            <string>+</string>
+            <string/>
            </property>
           </widget>
          </item>
@@ -39,21 +39,21 @@
          <item row="2" column="1">
           <widget class="QToolButton" name="fftMinusY">
            <property name="text">
-            <string>-</string>
+            <string/>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
           <widget class="QToolButton" name="fftMinusX">
            <property name="text">
-            <string>-</string>
+            <string/>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
           <widget class="QToolButton" name="fftPlusY">
            <property name="text">
-            <string>+</string>
+            <string/>
            </property>
           </widget>
          </item>
@@ -67,28 +67,28 @@
          <item row="0" column="1">
           <widget class="QToolButton" name="timePlusY">
            <property name="text">
-            <string>+</string>
+            <string/>
            </property>
           </widget>
          </item>
          <item row="2" column="1">
           <widget class="QToolButton" name="timeMinusY">
            <property name="text">
-            <string>-</string>
+            <string/>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
           <widget class="QToolButton" name="timeMinusX">
            <property name="text">
-            <string>-</string>
+            <string/>
            </property>
           </widget>
          </item>
          <item row="1" column="2">
           <widget class="QToolButton" name="timePlusX">
            <property name="text">
-            <string>+</string>
+            <string/>
            </property>
           </widget>
          </item>
