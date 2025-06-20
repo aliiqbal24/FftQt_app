@@ -118,7 +118,7 @@ class PowerScaleDraw : public QwtScaleDraw {
 public:
     QwtText label(double value) const override {
         int exp = qRound(value);
-        QString txt = QString("10<sup> <span style='font-size:120%%'>%1,</span></sup>").arg(exp);
+        QString txt = QString("10<sup> <span style='font-size:120%%'>%1</span></sup>").arg(exp);
         QwtText t(txt);
         return t;
     }
@@ -411,9 +411,9 @@ void PlotManager::positionButtons(QwtPlot *plot, QToolButton *plusX, QToolButton
 
     // (2) Y-axis zoom buttons along left edge, vertically spaced          --- WE CAN SOLVE WITH PERCENT BASED
     if (plusY)
-        plusY->move(1, plotH * 0.25);  // fixed position inside plot widget
+        plusY->move(1, plotH * 0.20);  // fixed position inside plot widget
     if (minusY)
-        minusY->move(1, plotH * 0.66); // adjusting spacing in screen
+        minusY->move(1, plotH * 0.63); // adjusting spacing in screen
 }
 
 bool PlotManager::eventFilter(QObject *obj, QEvent *event)
